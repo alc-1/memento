@@ -29,14 +29,14 @@ const base = import.meta.env.BASE_URL;
               class="copy"
               data-copy={`${base}${m.copy}`}
               data-animated={m.animated}
-              aria-label={m.animated ? `Copy link to: ${m.caption}` : `Copy meme: ${m.caption}`}
+              aria-label={m.animated ? `Copy GIF: ${m.caption}` : `Copy meme: ${m.caption}`}
             >
               <img src={`${base}${m.thumb}`} alt={m.caption} loading="lazy" />
               <span class="badge" aria-live="polite"></span>
             </button>
             <p class="caption">{m.caption}</p>
             <p class="credit">by {m.author}</p>
-            {m.animated && <p class="hint">Animated: click copies the link</p>}
+            {m.animated && <p class="hint">Animated: pastes as GIF in rich editors, as a link elsewhere</p>}
           </li>
         ))}
       </ul>

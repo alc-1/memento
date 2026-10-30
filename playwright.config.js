@@ -33,7 +33,8 @@ export default defineConfig({
   webServer: {
     command: `npm run build && npx astro preview --port ${PORT}`,
     url: `http://localhost:${PORT}/meme/`,
-    reuseExistingServer: !process.env.CI,
+    // Never reuse: a leftover server would serve a stale build and hide failures.
+    reuseExistingServer: false,
     timeout: 120_000,
   },
 });

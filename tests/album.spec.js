@@ -57,14 +57,20 @@ test('clicking a still meme copies a PNG to the clipboard', async ({ page }) => 
   expect(type.size).toBeGreaterThan(0);
 });
 
-test('clicking an animated GIF copies its link instead', async ({ page }) => {
+test('clicking an animated GIF copies it as HTML img plus plain link', async ({ page }) => {
   const button = page.locator('button.copy[data-animated="true"]');
   await expect(button).toHaveCount(1);
   await button.click();
-  await expect(button.locator('.badge')).toHaveText('Link copied');
+  await expect(button.locator('.badge')).toHaveText('GIF copied');
 
-  const text = await page.evaluate(() => navigator.clipboard.readText());
-  expect(text).toMatch(/\/meme\/generated\/loading-gif\/animated\.gif$/);
+  const clip = await page.evaluate(async () => {
+    const [item] = await navigator.clipboard.read();
+    const read = async (t) => (await item.getType(t)).text();
+    return { types: item.types, html: await read('text/html'), text: await read('text/plain') };
+  });
+  expect(clip.types).toEqual(expect.arrayContaining(['text/html', 'text/plain']));
+  expect(clip.text).toMatch(/^http.*\/meme\/generated\/loading-gif\/animated\.gif$/);
+  expect(clip.html).toContain(`<img src="${clip.text}"`);
 });
 
 test('shows an error badge when the copy asset is missing', async ({ page }) => {
