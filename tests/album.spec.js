@@ -14,9 +14,12 @@ test.beforeEach(async ({ page }) => {
 test('renders one card per meme with caption and attribution', async ({ page }) => {
   const cards = page.locator('.card');
   await expect(cards).toHaveCount(index.length);
-  for (const card of await cards.all()) {
+  for (const m of index) {
+    const card = page.locator(`.card[data-slug="${m.slug}"]`);
     await expect(card.locator('.caption')).not.toBeEmpty();
-    await expect(card.locator('.credit')).toHaveText(/^by .+/);
+    // An "Unknown" author stays in the data (it is mandatory) but is not shown.
+    if (m.author.trim().toLowerCase() === 'unknown') await expect(card.locator('.credit')).toHaveCount(0);
+    else await expect(card.locator('.credit')).toHaveText(`by ${m.author}`);
   }
 });
 

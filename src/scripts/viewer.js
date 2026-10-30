@@ -1,3 +1,5 @@
+import { isKnownAuthor } from './author.js';
+
 const memes = new Map(JSON.parse(document.getElementById('memes-data').textContent).map((m) => [m.slug, m]));
 const base = import.meta.env.BASE_URL;
 
@@ -32,14 +34,14 @@ function sourceValue(source) {
 function openViewer(meme) {
   viewerImg.src = `${base}${meme.full}`;
   viewerImg.alt = meme.caption;
-  viewerCaption.textContent = `${meme.caption} · by ${meme.author}`;
+  viewerCaption.textContent = isKnownAuthor(meme.author) ? `${meme.caption} · by ${meme.author}` : meme.caption;
   viewer.showModal();
 }
 
 function openInfo(meme) {
   infoTitle.textContent = meme.caption;
   infoList.replaceChildren(
-    ...row('Author', meme.author),
+    ...row('Author', isKnownAuthor(meme.author) ? meme.author : ''),
     ...row('Source', sourceValue(meme.source)),
     ...row('Category', meme.category),
     ...row('Language', meme.language),

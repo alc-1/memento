@@ -16,6 +16,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 const card = (page, slug) => page.locator(`.card[data-slug="${slug}"]`);
+const isUnknown = (m) => m.author.trim().toLowerCase() === 'unknown';
 const sha256 = (buffer) => createHash('sha256').update(buffer).digest('hex');
 
 test('every card has copy, download and info buttons', async ({ page }) => {
@@ -26,6 +27,53 @@ test('every card has copy, download and info buttons', async ({ page }) => {
     await expect(c.locator('a.download')).toHaveCount(1);
     await expect(c.locator('button.info')).toHaveCount(1);
   }
+});
+
+test('buttons are icon-only and named by their title', async ({ page }) => {
+  const c = card(page, index.find((m) => !m.animated).slug);
+  for (const [selector, title] of [['.copy', 'Copy'], ['.download', 'Download'], ['.info', 'Info']]) {
+    const button = c.locator(`.act${selector}`);
+    await expect(button).toHaveAttribute('title', title);
+    await expect(button).toHaveText('');
+    await expect(button.locator('svg')).toHaveCount(1);
+  }
+});
+
+test('the buttons sit on the caption line, and drop below it only when it overflows', async ({ page }) => {
+  const layout = await page.locator('.card').evaluateAll((cards) =>
+    cards.map((c) => {
+      const caption = c.querySelector('.caption').getBoundingClientRect();
+      const actions = c.querySelector('.actions').getBoundingClientRect();
+      const card = c.getBoundingClientRect();
+      return {
+        slug: c.dataset.slug,
+        sameLine: actions.top < caption.bottom && actions.bottom > caption.top,
+        below: actions.top >= caption.bottom - 1,
+        insideCard: actions.right <= card.right && actions.left >= card.left,
+      };
+    }),
+  );
+  for (const l of layout) {
+    expect(l.insideCard, `${l.slug} buttons stay inside the card`).toBe(true);
+    expect(l.sameLine || l.below, `${l.slug} is either beside or under its caption`).toBe(true);
+  }
+  // The shortest caption always has room for the buttons beside it.
+  const shortest = [...index].sort((a, b) => a.caption.length - b.caption.length)[0];
+  expect(layout.find((l) => l.slug === shortest.slug).sameLine).toBe(true);
+});
+
+test('an Unknown author is hidden on the card, in the large view and in info', async ({ page }) => {
+  const m = index.find(isUnknown);
+  test.skip(!m, 'no meme with an Unknown author in memes/ right now');
+  const c = card(page, m.slug);
+  await expect(c.locator('.credit')).toHaveCount(0);
+
+  await c.locator('button.view').click();
+  await expect(page.locator('#viewer-caption')).toHaveText(m.caption);
+  await page.keyboard.press('Escape');
+
+  await c.locator('button.info').click();
+  await expect(page.locator('#info-dialog dt', { hasText: 'Author' })).toHaveCount(0);
 });
 
 test('download serves the untouched original under a clean filename', async ({ page }) => {
@@ -55,7 +103,8 @@ test('info shows the metadata, escape closes it', async ({ page }) => {
   const dialog = page.locator('#info-dialog');
   await expect(dialog).toBeVisible();
   await expect(dialog.locator('h2')).toHaveText(m.caption);
-  await expect(dialog).toContainText(m.author);
+  if (isUnknown(m)) await expect(dialog.locator('dt', { hasText: 'Author' })).toHaveCount(0);
+  else await expect(dialog).toContainText(m.author);
   await expect(dialog).toContainText(m.source);
   if (m.language) await expect(dialog).toContainText(m.language);
   for (const tag of m.tags) await expect(dialog).toContainText(tag);
