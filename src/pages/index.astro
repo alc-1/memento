@@ -51,26 +51,60 @@ const facets = [
       <ul class="grid">
         {memes.map((m) => (
           <li class="card" data-slug={m.slug}>
-            <button
-              type="button"
-              class="copy"
-              data-copy={`${base}${m.copy}`}
-              data-animated={m.animated}
-              aria-label={m.animated ? `Copy link to: ${m.caption}` : `Copy meme: ${m.caption}`}
-            >
+            <button type="button" class="view" aria-label={`View larger: ${m.caption}`} aria-haspopup="dialog">
               <img src={`${base}${m.thumb}`} alt={m.caption} loading="lazy" />
-              <span class="badge" aria-live="polite"></span>
             </button>
             <p class="caption">{m.caption}</p>
             <p class="credit">by {m.author}</p>
-            {m.animated && <p class="hint">Animated: click copies the link</p>}
+            <div class="actions">
+              <button
+                type="button"
+                class="act copy"
+                data-copy={`${base}${m.copy}`}
+                data-animated={m.animated}
+                aria-label={m.animated ? `Copy link to: ${m.caption}` : `Copy meme: ${m.caption}`}
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2" /><path d="M5 15V6a2 2 0 0 1 2-2h9" /></svg>
+                <span class="label">{m.animated ? 'Copy link' : 'Copy'}</span>
+                <span class="badge" aria-live="polite"></span>
+              </button>
+              <a
+                class="act download"
+                href={`${base}${m.original}`}
+                download={m.download}
+                aria-label={`Download original: ${m.caption}`}
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11" /><path d="m7 11 5 5 5-5" /><path d="M5 20h14" /></svg>
+                <span class="label">Download</span>
+              </a>
+              <button type="button" class="act info" aria-label={`Info: ${m.caption}`} aria-haspopup="dialog">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 11v6" /><path d="M12 7.5v.01" /></svg>
+                <span class="label">Info</span>
+              </button>
+            </div>
+            {m.animated && <p class="hint">Animated: copy gives the link</p>}
           </li>
         ))}
       </ul>
     </main>
 
+    <dialog id="viewer" aria-label="Meme viewer">
+      <form method="dialog"><button class="close" aria-label="Close">×</button></form>
+      <img id="viewer-img" alt="" />
+      <p id="viewer-caption"></p>
+    </dialog>
+
+    <dialog id="info-dialog" aria-labelledby="info-title">
+      <form method="dialog"><button class="close" aria-label="Close">×</button></form>
+      <h2 id="info-title"></h2>
+      <dl id="info-list"></dl>
+    </dialog>
+
+    <script type="application/json" id="memes-data" set:html={JSON.stringify(memes)} />
+
     <script>
       import '../scripts/copy.js';
+      import '../scripts/viewer.js';
       import '../scripts/filter.js';
     </script>
   </body>

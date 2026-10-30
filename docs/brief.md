@@ -23,7 +23,9 @@ The value is in two things: the quality of the content, and how little effort it
 ## What visitors get
 
 - **An album:** memes and illustrations displayed as a visual grid.
-- **One-click copy:** click a meme and it is copied, ready to paste. Animated GIFs fall back to a copy-link button, since browsers only copy still images reliably.
+- **One-click copy:** every meme has a Copy button that puts the image on the clipboard, ready to paste. Animated GIFs copy their link instead, since browsers only copy still images reliably.
+- **Download and info:** a Download button gives the original file, an Info button shows the metadata (author, source, category, language, tags, description).
+- **Large view:** clicking a meme opens it full size.
 - **Filters and search:** filter by category and language, search by tag or caption.
 - **Fast loading:** images are compressed and served as thumbnails in the grid.
 

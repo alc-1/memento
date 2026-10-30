@@ -47,27 +47,51 @@ header p { margin: 0; color: var(--muted); }
 }
 
 .card {
+  position: relative;
   background: var(--card);
   border-radius: 10px;
   overflow: hidden;
   box-shadow: 0 1px 3px rgb(0 0 0 / 0.15);
 }
 
-.copy {
-  position: relative;
+.view {
   display: block;
   width: 100%;
   padding: 0;
   border: 0;
   background: none;
+  cursor: zoom-in;
+}
+.view:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
+.view img { display: block; width: 100%; height: auto; }
+
+.actions { display: flex; gap: 0.4rem; margin: 0.6rem 0.75rem 0; }
+.act {
+  display: inline-flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 2.5rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--muted);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--fg);
+  font: inherit;
+  font-size: 0.85rem;
+  text-decoration: none;
   cursor: pointer;
 }
-.copy:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
-.copy img { display: block; width: 100%; height: auto; }
+.act:hover { border-color: var(--accent); }
+.act:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.act svg { width: 1.1rem; height: 1.1rem; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+@media (max-width: 380px) { .act .label { display: none; } }
 
+/* The feedback badge sits over the top right of the image, whichever action triggered it. */
 .badge {
   position: absolute;
-  inset: auto 0.5rem 0.5rem auto;
+  inset: 0.5rem 0.5rem auto auto;
   padding: 0.25rem 0.6rem;
   border-radius: 999px;
   color: #fff;
@@ -78,6 +102,39 @@ header p { margin: 0; color: var(--muted); }
 .badge:empty { display: none; }
 .badge[data-state='ok'] { background: var(--ok); }
 .badge[data-state='error'] { background: var(--error); }
+
+dialog {
+  max-width: min(94vw, 1200px);
+  max-height: 94vh;
+  padding: 1rem;
+  border: 0;
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--fg);
+}
+dialog::backdrop { background: rgb(0 0 0 / 0.75); }
+dialog form { position: absolute; top: 0.4rem; right: 0.4rem; margin: 0; }
+.close {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.6);
+  color: #fff;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.close:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+#viewer { padding: 0.5rem; }
+#viewer img { display: block; max-width: 100%; max-height: 82vh; margin: 0 auto; }
+#viewer p { margin: 0.5rem 0.25rem 0; text-align: center; }
+#info-dialog { width: min(92vw, 28rem); }
+#info-dialog h2 { margin: 0 2.5rem 0.75rem 0; font-size: 1.15rem; }
+#info-dialog dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.4rem 1rem; margin: 0; }
+#info-dialog dt { color: var(--muted); }
+#info-dialog dd { margin: 0; overflow-wrap: anywhere; }
+#info-dialog a { color: var(--accent); }
 
 .caption { margin: 0.5rem 0.75rem 0; font-weight: 600; }
 .credit, .hint { margin: 0 0.75rem; font-size: 0.85rem; color: var(--muted); }

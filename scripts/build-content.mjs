@@ -61,8 +61,10 @@ for (const { slug, dir, meta, original } of loaded) {
   await mkdir(outDir, { recursive: true });
   const { animated } = await generateImages(path.join(dir, original), outDir);
 
-  // Animated GIFs keep their original so the "copy link" fallback has something to point at.
-  if (animated) await copyFile(path.join(dir, original), path.join(outDir, 'animated.gif'));
+  // The untouched original is published for the download button. It also serves as the
+  // animated GIF's "copy link" target and its large view, so GIFs are not stored twice.
+  const ext = path.extname(original).toLowerCase();
+  await copyFile(path.join(dir, original), path.join(outDir, `original${ext}`));
 
   index.push({
     slug,
@@ -76,8 +78,11 @@ for (const { slug, dir, meta, original } of loaded) {
     mine: meta.mine ?? false,
     animated,
     thumb: `generated/${slug}/thumb.webp`,
-    full: `generated/${slug}/full.webp`,
-    copy: animated ? `generated/${slug}/animated.gif` : `generated/${slug}/copy.png`,
+    original: `generated/${slug}/original${ext}`,
+    download: `${slug}${ext}`,
+    // Large view and clipboard source: stills use the optimized versions, GIFs keep their animation.
+    full: animated ? `generated/${slug}/original${ext}` : `generated/${slug}/full.webp`,
+    copy: animated ? `generated/${slug}/original${ext}` : `generated/${slug}/copy.png`,
   });
   console.log(`  ${slug}${animated ? ' (animated)' : ''}`);
 }

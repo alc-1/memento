@@ -69,7 +69,7 @@ test('clicking an animated GIF copies its link instead', async ({ page }) => {
   await expect(button.locator('.badge')).toHaveText('Link copied');
 
   const text = await page.evaluate(() => navigator.clipboard.readText());
-  expect(text).toMatch(new RegExp(`/meme/generated/${animated[0].slug}/animated\\.gif$`));
+  expect(text).toMatch(new RegExp(`/meme/generated/${animated[0].slug}/original\\.\\w+$`));
 });
 
 test('shows an error badge when the copy asset is missing', async ({ page }) => {
