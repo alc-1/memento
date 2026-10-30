@@ -4,8 +4,86 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Memento admin</title>
+  <link rel="stylesheet" href="admin.css">
 </head>
 <body>
-  <p>Memento admin (page coming next).</p>
+  <header class="top">
+    <h1><strong>Meme</strong>nto <span>admin</span></h1>
+    <label class="button" for="picker">Add images</label>
+    <input id="picker" type="file" accept="image/png,image/jpeg,image/webp,image/gif" multiple hidden>
+    <button type="button" id="check">Run check</button>
+    <span id="check-result" role="status"></span>
+  </header>
+
+  <div class="layout">
+    <aside>
+      <h2>Inbox <span id="inbox-count"></span></h2>
+      <ul id="queue" class="queue"></ul>
+      <p class="hint">Drop images anywhere, paste, or put files in <code>inbox/</code> and reload.</p>
+    </aside>
+
+    <main id="editor" hidden>
+      <figure class="preview"><img id="preview" alt=""></figure>
+
+      <form id="form" autocomplete="off" novalidate>
+        <div id="dup" class="banner" hidden>
+          <p>Identical to existing meme <strong id="dup-slug"></strong>.</p>
+          <img id="dup-img" alt="">
+          <label><input type="checkbox" id="dup-allow"> Add anyway</label>
+        </div>
+
+        <label>Caption *
+          <input id="caption" required>
+        </label>
+        <p class="slug">Folder: <code id="slug-preview"></code>
+          <button type="button" id="slug-edit" class="link">edit</button>
+          <input id="slug" hidden aria-label="Slug">
+        </p>
+
+        <div class="row">
+          <label>Category <input id="category" list="categories"></label>
+          <label>Language <input id="language" list="languages" maxlength="5"></label>
+        </div>
+
+        <label>Tags
+          <div class="chips" id="chips"><input id="tag-input" list="tag-list" aria-label="Add a tag"></div>
+        </label>
+        <ul id="tag-suggestions" class="suggestions"></ul>
+
+        <label class="check"><input type="checkbox" id="mine"> Mine (my own creation)</label>
+
+        <div class="row">
+          <label>Source * <input id="source" list="sources"></label>
+          <label>Author * <input id="author" list="authors"></label>
+        </div>
+
+        <details>
+          <summary>Description</summary>
+          <textarea id="description" rows="3"></textarea>
+        </details>
+
+        <p id="error" class="error" role="alert" hidden></p>
+        <div class="actions">
+          <button type="submit" id="save" class="primary">Save <kbd>Ctrl+Enter</kbd></button>
+          <button type="button" id="skip">Skip</button>
+          <button type="button" id="discard" class="danger">Remove from inbox</button>
+        </div>
+      </form>
+    </main>
+
+    <main id="empty" class="empty">
+      <p>The inbox is empty. Drop an image to start.</p>
+    </main>
+  </div>
+
+  <datalist id="categories"></datalist>
+  <datalist id="languages"></datalist>
+  <datalist id="sources"></datalist>
+  <datalist id="authors"></datalist>
+  <datalist id="tag-list"></datalist>
+  <div id="drop" class="drop" hidden>Drop to add to the inbox</div>
+  <p id="toast" class="toast" role="status" hidden></p>
+
+  <script type="module" src="admin.js"></script>
 </body>
 </html>

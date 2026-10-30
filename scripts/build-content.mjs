@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { findOriginal, validateMeta } from './lib/validate.mjs';
 import { generateImages } from './lib/images.mjs';
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const ROOT = process.env.MEMENTO_ROOT ?? path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const MEMES_DIR = path.join(ROOT, 'memes');
 const OUT_DIR = path.join(ROOT, 'public', 'generated');
 const checkOnly = process.argv.includes('--check');

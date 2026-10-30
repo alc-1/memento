@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { mkdtemp, readFile, readdir, mkdir } from 'node:fs/promises';
+import { mkdtemp, readFile, readdir, mkdir, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import http from 'node:http';
@@ -116,4 +116,22 @@ test('rejects a foreign Host header (DNS rebinding)', async () => {
       .on('error', reject);
   });
   expect(status).toBe(403);
+});
+
+test('check reports the folders as valid, then flags a broken one', async () => {
+  const ok = await (await fetch(`${base}/api/check`, { method: 'POST' })).json();
+  expect(ok).toMatchObject({ ok: true, count: 2 });
+
+  await mkdir(path.join(root, 'memes', 'broken'));
+  const bad = await (await fetch(`${base}/api/check`, { method: 'POST' })).json();
+  expect(bad.ok).toBe(false);
+  expect(bad.errors.join(' ')).toContain('memes/broken');
+  await rm(path.join(root, 'memes', 'broken'), { recursive: true });
+});
+
+test('DELETE removes an inbox file and nothing else', async () => {
+  expect((await fetch(`${base}/api/inbox/blue.png`, { method: 'DELETE' })).status).toBe(200);
+  expect(existsSync(path.join(root, 'inbox', 'blue.png'))).toBe(false);
+  expect((await fetch(`${base}/api/inbox/${encodeURIComponent('../memes/chaton-du-lundi/meta.json')}`, { method: 'DELETE' })).status).toBe(404);
+  expect(existsSync(path.join(root, 'memes', 'chaton-du-lundi', 'meta.json'))).toBe(true);
 });

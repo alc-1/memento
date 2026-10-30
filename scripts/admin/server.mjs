@@ -1,4 +1,5 @@
 import http from 'node:http';
+import { execFile } from 'node:child_process';
 import { readdir, readFile, writeFile, mkdir, mkdtemp, rename, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
@@ -17,6 +18,7 @@ const FORMAT_EXT = { png: 'png', jpeg: 'jpg', webp: 'webp', gif: 'gif' };
 const MIME = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
+  '.mjs': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
@@ -120,6 +122,7 @@ export function createAdminServer({ root = process.env.MEMENTO_ROOT ?? REPO_ROOT
       const metas = await loadMetas();
       return {
         inbox: await listInbox(),
+        slugs: metas.map((m) => m.slug),
         tags: countBy(metas.flatMap((m) => m.tags ?? [])),
         categories: countBy(metas.map((m) => m.category).filter(Boolean)),
         languages: countBy(metas.map((m) => m.language).filter(Boolean)),
@@ -149,6 +152,18 @@ export function createAdminServer({ root = process.env.MEMENTO_ROOT ?? REPO_ROOT
       const hash = hashBytes(buffer);
       const duplicateOf = (await indexOriginals(memesDir)).get(hash) ?? null;
       return { name, hash, duplicateOf };
+    },
+
+    /** Runs the same validation as `npm run check`, against this server's root. */
+    async 'POST /api/check'() {
+      const script = path.join(REPO_ROOT, 'scripts', 'build-content.mjs');
+      return new Promise((resolve) => {
+        execFile(process.execPath, [script, '--check'], { env: { ...process.env, MEMENTO_ROOT: root } }, (err, stdout, stderr) => {
+          if (!err) return resolve({ ok: true, count: Number(stdout.match(/OK: (\d+)/)?.[1] ?? 0) });
+          const errors = stderr.split('\n').map((l) => l.trim()).filter((l) => l.startsWith('memes/'));
+          resolve({ ok: false, errors: errors.length ? errors : [stderr.trim() || err.message] });
+        });
+      });
     },
 
     async 'POST /api/memes'(req) {
@@ -188,8 +203,13 @@ export function createAdminServer({ root = process.env.MEMENTO_ROOT ?? REPO_ROOT
   };
 
   async function serveStatic(res, rel) {
-    const file = path.normalize(path.join(ADMIN_DIR, rel === '/' ? 'index.html' : rel));
-    if (!file.startsWith(ADMIN_DIR + path.sep) || !existsSync(file)) throw new HttpError(404, 'not found');
+    // The browser reuses the server's slug rules, so the live preview can never drift from the real slug.
+    const file = rel === '/lib/slug.mjs'
+      ? path.join(REPO_ROOT, 'scripts', 'lib', 'slug.mjs')
+      : path.normalize(path.join(ADMIN_DIR, rel === '/' ? 'index.html' : rel));
+    if (!(file.startsWith(ADMIN_DIR + path.sep) || rel === '/lib/slug.mjs') || !existsSync(file)) {
+      throw new HttpError(404, 'not found');
+    }
     send(res, 200, await readFile(file), MIME[path.extname(file)] ?? 'application/octet-stream');
   }
 
@@ -213,6 +233,10 @@ export function createAdminServer({ root = process.env.MEMENTO_ROOT ?? REPO_ROOT
       const url = new URL(req.url, 'http://localhost');
       const image = url.pathname.match(/^\/api\/(inbox|meme)\/([^/]+)$/);
       if (req.method === 'GET' && image) return await serveImage(res, image[1], decodeURIComponent(image[2]));
+      if (req.method === 'DELETE' && image?.[1] === 'inbox') {
+        await rm(await inboxPath(decodeURIComponent(image[2])));
+        return send(res, 200, { ok: true });
+      }
       const route = routes[`${req.method} ${url.pathname}`];
       if (route) return send(res, 200, await route(req));
       if (req.method === 'GET' && !url.pathname.startsWith('/api/')) return await serveStatic(res, url.pathname);
