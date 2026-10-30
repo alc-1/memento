@@ -39,27 +39,30 @@ test('buttons are icon-only and named by their title', async ({ page }) => {
   }
 });
 
-test('the buttons sit on the caption line, and drop below it only when it overflows', async ({ page }) => {
+test('the buttons sit below the text, aligned on the right', async ({ page }) => {
   const layout = await page.locator('.card').evaluateAll((cards) =>
     cards.map((c) => {
-      const caption = c.querySelector('.caption').getBoundingClientRect();
-      const actions = c.querySelector('.actions').getBoundingClientRect();
-      const card = c.getBoundingClientRect();
+      const box = (el) => el.getBoundingClientRect();
+      const actions = box(c.querySelector('.actions'));
+      const card = box(c);
+      const texts = [...c.querySelectorAll('.caption, .credit, .hint')].map(box);
+      const buttons = [...c.querySelectorAll('.act')].map(box);
       return {
         slug: c.dataset.slug,
-        sameLine: actions.top < caption.bottom && actions.bottom > caption.top,
-        below: actions.top >= caption.bottom - 1,
-        insideCard: actions.right <= card.right && actions.left >= card.left,
+        belowText: texts.every((t) => actions.top >= t.bottom - 1),
+        belowImage: actions.top >= box(c.querySelector('.view')).bottom,
+        rightGap: card.right - Math.max(...buttons.map((b) => b.right)),
+        leftGap: Math.min(...buttons.map((b) => b.left)) - card.left,
+        singleRow: new Set(buttons.map((b) => Math.round(b.top))).size === 1,
       };
     }),
   );
   for (const l of layout) {
-    expect(l.insideCard, `${l.slug} buttons stay inside the card`).toBe(true);
-    expect(l.sameLine || l.below, `${l.slug} is either beside or under its caption`).toBe(true);
+    expect(l.belowImage && l.belowText, `${l.slug} buttons are below all the text`).toBe(true);
+    expect(l.singleRow, `${l.slug} buttons share one row`).toBe(true);
+    expect(l.rightGap, `${l.slug} buttons hug the right edge`).toBeLessThan(20);
+    expect(l.leftGap, `${l.slug} buttons are pushed right`).toBeGreaterThan(l.rightGap);
   }
-  // The shortest caption always has room for the buttons beside it.
-  const shortest = [...index].sort((a, b) => a.caption.length - b.caption.length)[0];
-  expect(layout.find((l) => l.slug === shortest.slug).sameLine).toBe(true);
 });
 
 test('an Unknown author is hidden on the card, in the large view and in info', async ({ page }) => {

@@ -65,10 +65,8 @@ header p { margin: 0; color: var(--muted); }
 .view:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
 .view img { display: block; width: 100%; height: auto; }
 
-/* Caption and the three buttons share a line; the buttons drop below only when the caption leaves no room. */
-.title-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.75rem; margin: 0.5rem 0.75rem 0; }
-.title-row .caption { flex: 1 1 auto; margin: 0; min-width: 0; overflow-wrap: anywhere; }
-.actions { display: flex; flex: none; gap: 0.35rem; margin-left: auto; }
+/* The buttons always sit below the text, aligned to the right. */
+.actions { display: flex; justify-content: flex-end; gap: 0.35rem; margin: 0.6rem 0.75rem 0; }
 .act {
   display: inline-flex;
   align-items: center;
