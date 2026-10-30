@@ -27,7 +27,7 @@ body {
   line-height: 1.4;
 }
 
-header, main, footer {
+header, main {
   max-width: 1100px;
   margin: 0 auto;
   padding: 1rem;
@@ -83,7 +83,6 @@ header p { margin: 0; color: var(--muted); }
 .credit, .hint { margin: 0 0.75rem; font-size: 0.85rem; color: var(--muted); }
 .card > :last-child { margin-bottom: 0.75rem; }
 
-footer { color: var(--muted); font-size: 0.85rem; }
 
 .sr-only {
   position: absolute;

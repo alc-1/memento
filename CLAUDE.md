@@ -51,4 +51,4 @@ Album grid with thumbnails, filters (category, language), client-side search (e.
 ## Working style
 - Stack is chosen in plan mode before coding. Keep it boring and light, no heavy framework.
 - Small tasks, commit after each working step, run the build script as the check.
-- Illustrations are mostly by Roberto Ferraro. Do not publish them without his written permission, and keep a report-or-remove contact line on the site.
+- Postponed for now: Roberto Ferraro's illustrations (written permission) and the report-or-remove contact line. Neither is on the site; revisit before any public launch.

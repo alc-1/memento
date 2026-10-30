@@ -87,7 +87,7 @@ Adding a meme must take 30 seconds, otherwise the site never gets fed. A local a
 1. **Viewer:** grid, filters, search, click to copy.
 2. **Admin page:** drag and drop, metadata form, save and push. It deserves as much care as the public side.
 3. **Content:** seed the album with a first batch, with source and author filled in for each meme.
-4. **Rights:** get Roberto Ferraro's written permission, then add the report-or-remove contact line.
+4. **Rights (postponed):** get Roberto Ferraro's written permission, then add the report-or-remove contact line. Set aside for now, to revisit before any public launch.
 5. **Later, popularity ranking:** count every click-to-copy as the KPI, using a small Cloudflare Worker with KV or D1 keyed by slug, and add a "Popular" sort. Counts stay out of git, with no accounts or cookies. A simple like button can come as a second signal.
 
 **Decisions**
