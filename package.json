@@ -9,6 +9,7 @@
     "dev": "npm run content && astro dev",
     "build": "npm run content && astro build",
     "preview": "astro preview",
+    "admin": "node scripts/admin/server.mjs",
     "test": "playwright test",
     "test:ui": "playwright test --ui"
   },
