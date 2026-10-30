@@ -1,0 +1,53 @@
+---
+import { readFileSync } from 'node:fs';
+import '../styles/global.css';
+
+const memes = JSON.parse(readFileSync('public/generated/index.json', 'utf8'));
+const base = import.meta.env.BASE_URL;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Memento</title>
+    <meta name="description" content="There is always a time for memes. One click copies a meme, ready to paste into any chat." />
+  </head>
+  <body>
+    <header>
+      <h1><strong>Meme</strong>nto</h1>
+      <p>There is always a time for memes. Yet we don't find them when we need them. They are now one-click away.</p>
+    </header>
+
+    <main>
+      <ul class="grid">
+        {memes.map((m) => (
+          <li class="card">
+            <button
+              type="button"
+              class="copy"
+              data-copy={`${base}${m.copy}`}
+              data-animated={m.animated}
+              aria-label={m.animated ? `Copy link to: ${m.caption}` : `Copy meme: ${m.caption}`}
+            >
+              <img src={`${base}${m.thumb}`} alt={m.caption} loading="lazy" />
+              <span class="badge" aria-live="polite"></span>
+            </button>
+            <p class="caption">{m.caption}</p>
+            <p class="credit">by {m.author}</p>
+            {m.animated && <p class="hint">Animated: click copies the link</p>}
+          </li>
+        ))}
+      </ul>
+    </main>
+
+    <footer>
+      <p>To report or remove content, contact: <em>contact line to be added</em></p>
+    </footer>
+
+    <script>
+      import '../scripts/copy.js';
+    </script>
+  </body>
+</html>
