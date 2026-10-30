@@ -19,22 +19,8 @@ async function copyImage(url) {
   await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
 }
 
-// Browsers cannot copy an animated GIF as an image (PNG only, which would freeze it).
-// Best effort: an <img> as HTML so rich editors embed the animation, plus the URL as plain
-// text for everything else. image/gif is added only where the browser reports support.
-async function copyAnimated(url) {
-  const href = new URL(url, location.href).href;
-  const item = {
-    'text/html': new Blob([`<img src="${href}" alt="">`], { type: 'text/html' }),
-    'text/plain': new Blob([href], { type: 'text/plain' }),
-  };
-  if (ClipboardItem.supports?.('image/gif')) {
-    item['image/gif'] = fetch(url).then((r) => {
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      return r.blob();
-    });
-  }
-  await navigator.clipboard.write([new ClipboardItem(item)]);
+async function copyLink(url) {
+  await navigator.clipboard.writeText(new URL(url, location.href).href);
 }
 
 document.addEventListener('click', async (event) => {
@@ -44,8 +30,8 @@ document.addEventListener('click', async (event) => {
   const animated = button.dataset.animated === 'true';
   try {
     if (animated) {
-      await copyAnimated(url);
-      flash(button, 'GIF copied', true);
+      await copyLink(url);
+      flash(button, 'Link copied', true);
     } else {
       await copyImage(url);
       flash(button, 'Copied!', true);
