@@ -135,3 +135,49 @@ test('DELETE removes an inbox file and nothing else', async () => {
   expect((await fetch(`${base}/api/inbox/${encodeURIComponent('../memes/chaton-du-lundi/meta.json')}`, { method: 'DELETE' })).status).toBe(404);
   expect(existsSync(path.join(root, 'memes', 'chaton-du-lundi', 'meta.json'))).toBe(true);
 });
+
+const put = (slug, body) =>
+  fetch(`${base}/api/memes/${slug}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+
+test('state lists the existing memes with their metadata', async () => {
+  const { memes } = await (await fetch(`${base}/api/state`)).json();
+  expect(memes.map((m) => m.slug)).toEqual(['chaton-du-lundi', 'chaton-du-lundi-2']);
+  expect(memes[0]).toMatchObject({ caption: 'Chaton du lundi', author: 'someone', tags: ['chat'] });
+});
+
+test('PUT updates meta.json only; the folder, image and slug stay', async () => {
+  const dir = path.join(root, 'memes', 'chaton-du-lundi');
+  const imageBefore = await readFile(path.join(dir, 'original.png'));
+
+  const res = await put('chaton-du-lundi', { meta: { ...form, caption: 'Un autre titre', tags: ['chat', 'lundi'], mine: true }, slug: 'hijack' });
+  expect(res.status).toBe(200);
+  expect((await res.json()).slug).toBe('chaton-du-lundi');
+
+  const meta = JSON.parse(await readFile(path.join(dir, 'meta.json'), 'utf8'));
+  expect(meta).toMatchObject({ caption: 'Un autre titre', tags: ['chat', 'lundi'], mine: true });
+  expect(await readFile(path.join(dir, 'original.png'))).toEqual(imageBefore);
+  expect((await readdir(dir)).sort()).toEqual(['meta.json', 'original.png']);
+  expect(existsSync(path.join(root, 'memes', 'hijack'))).toBe(false);
+});
+
+test('PUT refuses a missing mandatory field and keeps the old file', async () => {
+  const res = await put('chaton-du-lundi', { meta: { ...form, source: ' ' } });
+  expect(res.status).toBe(422);
+  const meta = JSON.parse(await readFile(path.join(root, 'memes', 'chaton-du-lundi', 'meta.json'), 'utf8'));
+  expect(meta.caption).toBe('Un autre titre');
+});
+
+test('PUT and DELETE reject unknown and malicious slugs', async () => {
+  expect((await put('nope', { meta: form })).status).toBe(404);
+  expect((await put('..%2f..%2fetc', { meta: form })).status).toBe(404);
+  expect((await fetch(`${base}/api/memes/nope`, { method: 'DELETE' })).status).toBe(404);
+  expect((await fetch(`${base}/api/memes/${encodeURIComponent('../inbox')}`, { method: 'DELETE' })).status).toBe(404);
+  expect(existsSync(path.join(root, 'inbox'))).toBe(true);
+});
+
+test('DELETE removes the whole meme folder and only that one', async () => {
+  const res = await fetch(`${base}/api/memes/chaton-du-lundi-2`, { method: 'DELETE' });
+  expect(res.status).toBe(200);
+  expect(existsSync(path.join(root, 'memes', 'chaton-du-lundi-2'))).toBe(false);
+  expect(existsSync(path.join(root, 'memes', 'chaton-du-lundi', 'meta.json'))).toBe(true);
+});

@@ -75,6 +75,12 @@ kbd { font: 0.75em monospace; opacity: 0.8; margin-left: 0.4em; }
 aside h2 { margin: 0 0 0.5rem; font-size: 1rem; }
 .hint { color: var(--muted); font-size: 0.85rem; }
 
+.tabs { display: flex; gap: 0.4rem; margin-bottom: 0.75rem; }
+.tabs button { flex: 1; }
+.tabs button[aria-selected='true'] { background: var(--accent); border-color: var(--accent); color: #fff; }
+#library-filter { width: 100%; margin-bottom: 0.5rem; padding: 0.45rem 0.6rem; border: 1px solid var(--line); border-radius: 8px; background: var(--card); }
+#library-list { max-height: 70vh; overflow-y: auto; }
+.queue .sub { display: block; font-size: 0.7rem; color: var(--muted); }
 .queue { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
 .queue button {
   display: flex;

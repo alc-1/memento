@@ -17,9 +17,18 @@
 
   <div class="layout">
     <aside>
-      <h2>Inbox <span id="inbox-count"></span></h2>
-      <ul id="queue" class="queue"></ul>
-      <p class="hint">Drop images anywhere, paste, or put files in <code>inbox/</code> and reload.</p>
+      <div class="tabs" role="tablist">
+        <button type="button" role="tab" id="tab-inbox" aria-selected="true" aria-controls="panel-inbox">Inbox <span id="inbox-count"></span></button>
+        <button type="button" role="tab" id="tab-library" aria-selected="false" aria-controls="panel-library">Library <span id="library-count"></span></button>
+      </div>
+      <div id="panel-inbox" role="tabpanel" aria-labelledby="tab-inbox">
+        <ul id="queue" class="queue"></ul>
+        <p class="hint">Drop images anywhere, paste, or put files in <code>inbox/</code> and reload.</p>
+      </div>
+      <div id="panel-library" role="tabpanel" aria-labelledby="tab-library" hidden>
+        <input id="library-filter" type="search" placeholder="Filter memes" aria-label="Filter memes">
+        <ul id="library-list" class="queue"></ul>
+      </div>
     </aside>
 
     <main id="editor" hidden>
@@ -35,7 +44,7 @@
         <label>Caption *
           <input id="caption" required>
         </label>
-        <p class="slug">Folder: <code id="slug-preview"></code>
+        <p class="slug"><span id="slug-label">Folder:</span> <code id="slug-preview"></code>
           <button type="button" id="slug-edit" class="link">edit</button>
           <input id="slug" hidden aria-label="Slug">
         </p>
@@ -68,15 +77,16 @@
           <label class="check"><input type="checkbox" id="git-push"> Push</label>
         </div>
         <div class="actions">
-          <button type="submit" id="save" class="primary">Save <kbd>Ctrl+Enter</kbd></button>
+          <button type="submit" id="save" class="primary"><span id="save-label">Save</span> <kbd>Ctrl+Enter</kbd></button>
           <button type="button" id="skip">Skip</button>
           <button type="button" id="discard" class="danger">Remove from inbox</button>
+          <button type="button" id="delete-meme" class="danger" hidden>Delete meme</button>
         </div>
       </form>
     </main>
 
     <main id="empty" class="empty">
-      <p>The inbox is empty. Drop an image to start.</p>
+      <p id="empty-text">The inbox is empty. Drop an image to start.</p>
     </main>
   </div>
 

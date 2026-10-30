@@ -83,3 +83,34 @@ test('a committed inbox file is removed in the same commit', async () => {
   expect(git('show', '--name-status', '--format=', 'HEAD')).toMatch(new RegExp(`^(D|R100)\\tinbox/${name}`, 'm'));
   expect(git('ls-files', 'inbox')).toBe('');
 });
+
+const send = (method, slug, body) =>
+  fetch(`${base}/api/memes/${slug}`, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then((r) => r.json());
+
+const meta = { caption: 'Hello there', source: 's', author: 'a' };
+
+test('editing commits only that meme meta.json', async () => {
+  await writeFile(path.join(root, 'unrelated2.txt'), 'wip');
+  git('add', 'unrelated2.txt');
+
+  const res = await send('PUT', 'hello-there', { meta: { ...meta, tags: ['new'] }, git: { commit: true } });
+  expect(res.git).toMatchObject({ committed: true, error: null });
+  expect(git('log', '-1', '--format=%s')).toBe('Update meme: hello-there');
+  expect(git('show', '--name-only', '--format=', 'HEAD')).toBe('memes/hello-there/meta.json');
+  expect(git('diff', '--cached', '--name-only')).toContain('unrelated2.txt');
+});
+
+test('saving without any change makes no empty commit', async () => {
+  const before = git('rev-parse', 'HEAD');
+  const res = await send('PUT', 'hello-there', { meta: { ...meta, tags: ['new'] }, git: { commit: true } });
+  expect(res.git).toEqual({ committed: false, pushed: false, error: null });
+  expect(git('rev-parse', 'HEAD')).toBe(before);
+});
+
+test('deleting commits the removal of the folder', async () => {
+  const res = await send('DELETE', 'hello-there-2', { git: { commit: true } });
+  expect(res.git.committed).toBe(true);
+  expect(git('log', '-1', '--format=%s')).toBe('Remove meme: hello-there-2');
+  expect(git('show', '--name-status', '--format=', 'HEAD')).toMatch(/^D\tmemes\/hello-there-2\/original\.png$/m);
+  expect(git('ls-files', 'memes/hello-there-2')).toBe('');
+});

@@ -9,7 +9,7 @@ import { findOriginal, validateMeta, SLUG_RE } from '../lib/validate.mjs';
 import { slugify, uniqueSlug } from '../lib/slug.mjs';
 import { hashBytes, indexOriginals } from '../lib/hash.mjs';
 import { buildMeta, writeMeta } from '../lib/meta.mjs';
-import { commitMeme } from './git.mjs';
+import { commitMeme, commitPaths } from './git.mjs';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const ADMIN_DIR = path.join(REPO_ROOT, 'admin');
@@ -124,6 +124,7 @@ export function createAdminServer({ root = process.env.MEMENTO_ROOT ?? REPO_ROOT
       return {
         inbox: await listInbox(),
         slugs: metas.map((m) => m.slug),
+        memes: metas.sort((a, b) => a.slug.localeCompare(b.slug)),
         tags: countBy(metas.flatMap((m) => m.tags ?? [])),
         categories: countBy(metas.map((m) => m.category).filter(Boolean)),
         languages: countBy(metas.map((m) => m.language).filter(Boolean)),
@@ -208,6 +209,48 @@ export function createAdminServer({ root = process.env.MEMENTO_ROOT ?? REPO_ROOT
     },
   };
 
+  /** Folder of an existing meme; the slug is checked against the pattern and the disk, never trusted. */
+  async function memeDir(slug) {
+    const dir = path.join(memesDir, slug);
+    if (!SLUG_RE.test(slug) || !existsSync(dir)) throw new HttpError(404, 'no such meme');
+    return dir;
+  }
+
+  /** The slug is the permanent ID: only meta.json changes, the folder and image never do. */
+  async function updateMeme(req, slug) {
+    const dir = await memeDir(slug);
+    const body = await readJson(req);
+    const meta = buildMeta(body.meta ?? {});
+    const errors = validateMeta(slug, meta, await findOriginal(dir));
+    if (errors.length) throw new HttpError(422, errors.join('; '), { errors });
+
+    const file = path.join(dir, 'meta.json');
+    await writeMeta(`${file}.tmp`, meta);
+    await rename(`${file}.tmp`, file);
+
+    const result = { slug, meta };
+    if (body.git?.commit) {
+      result.git = await commitPaths(root, {
+        message: `Update meme: ${slug}`, paths: [`memes/${slug}/meta.json`], push: body.git.push === true,
+      });
+    }
+    return result;
+  }
+
+  async function deleteMeme(req, slug) {
+    const dir = await memeDir(slug);
+    const body = await readJson(req).catch(() => ({}));
+    await rm(dir, { recursive: true });
+
+    const result = { slug };
+    if (body.git?.commit) {
+      result.git = await commitPaths(root, {
+        message: `Remove meme: ${slug}`, paths: [`memes/${slug}`], push: body.git.push === true,
+      });
+    }
+    return result;
+  }
+
   async function serveStatic(res, rel) {
     // The browser reuses the server's slug rules, so the live preview can never drift from the real slug.
     const file = rel === '/lib/slug.mjs'
@@ -243,6 +286,9 @@ export function createAdminServer({ root = process.env.MEMENTO_ROOT ?? REPO_ROOT
         await rm(await inboxPath(decodeURIComponent(image[2])));
         return send(res, 200, { ok: true });
       }
+      const meme = url.pathname.match(/^\/api\/memes\/([^/]+)$/);
+      if (meme && req.method === 'PUT') return send(res, 200, await updateMeme(req, decodeURIComponent(meme[1])));
+      if (meme && req.method === 'DELETE') return send(res, 200, await deleteMeme(req, decodeURIComponent(meme[1])));
       const route = routes[`${req.method} ${url.pathname}`];
       if (route) return send(res, 200, await route(req));
       if (req.method === 'GET' && !url.pathname.startsWith('/api/')) return await serveStatic(res, url.pathname);

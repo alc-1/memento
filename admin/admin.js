@@ -8,6 +8,10 @@ const els = {
   language: $('language'), chips: $('chips'), tagInput: $('tag-input'), suggestions: $('tag-suggestions'),
   mine: $('mine'), source: $('source'), author: $('author'), description: $('description'),
   error: $('error'), save: $('save'), dup: $('dup'), dupSlug: $('dup-slug'), dupImg: $('dup-img'),
+  tabInbox: $('tab-inbox'), tabLibrary: $('tab-library'), panelInbox: $('panel-inbox'), panelLibrary: $('panel-library'),
+  libraryList: $('library-list'), libraryFilter: $('library-filter'), libraryCount: $('library-count'),
+  slugLabel: $('slug-label'), saveLabel: $('save-label'), skip: $('skip'), discard: $('discard'),
+  deleteMeme: $('delete-meme'), emptyText: $('empty-text'),
   dupAllow: $('dup-allow'), gitCommit: $('git-commit'), gitPush: $('git-push'), toast: $('toast'), drop: $('drop'),
 };
 
@@ -15,8 +19,10 @@ const MINE_AUTHOR = 'Alvaro';
 const MINE_SOURCE = 'original';
 const REMEMBERED = ['category', 'language', 'source', 'author'];
 
-let state = { inbox: [], slugs: [], tags: [] };
+let state = { inbox: [], memes: [], slugs: [], tags: [] };
 let current = null; // inbox file name being edited
+let editing = null; // slug of the existing meme being edited
+let tab = 'inbox';
 let tags = [];
 let pushThisSession = false;
 
@@ -52,9 +58,86 @@ async function refresh(select) {
   fillDatalist('authors', state.authors);
   fillDatalist('tag-list', state.tags);
   renderQueue();
+  renderLibrary();
+  if (tab === 'library') return openMeme(state.memes.some((m) => m.slug === editing) ? editing : null);
   const names = state.inbox.map((f) => f.name);
   const next = names.includes(select) ? select : names.includes(current) ? current : names[0] ?? null;
   openFile(next);
+}
+
+function setTab(next) {
+  tab = next;
+  const library = next === 'library';
+  els.tabInbox.setAttribute('aria-selected', String(!library));
+  els.tabLibrary.setAttribute('aria-selected', String(library));
+  els.panelInbox.hidden = library;
+  els.panelLibrary.hidden = !library;
+  if (library) openMeme(state.memes.some((m) => m.slug === editing) ? editing : null);
+  else openFile(state.inbox.some((f) => f.name === current) ? current : state.inbox[0]?.name ?? null);
+}
+
+function renderLibrary() {
+  els.libraryCount.textContent = state.memes.length ? `(${state.memes.length})` : '';
+  const needle = els.libraryFilter.value.trim().toLowerCase();
+  const shown = state.memes.filter((m) =>
+    !needle || [m.slug, m.caption, m.author, ...(m.tags ?? [])].join(' ').toLowerCase().includes(needle));
+  els.libraryList.replaceChildren(...shown.map((m) => {
+    const li = document.createElement('li');
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.dataset.slug = m.slug;
+    button.setAttribute('aria-current', String(m.slug === editing));
+    const img = Object.assign(document.createElement('img'), { src: `/api/meme/${encodeURIComponent(m.slug)}`, alt: '', loading: 'lazy' });
+    const text = Object.assign(document.createElement('span'), { className: 'name' });
+    text.append(m.caption, Object.assign(document.createElement('span'), { className: 'sub', textContent: m.slug }));
+    button.append(img, text);
+    button.addEventListener('click', () => openMeme(m.slug));
+    li.append(button);
+    return li;
+  }));
+}
+
+/** Inbox and library share one form; edit mode locks the slug and swaps the buttons. */
+function setMode(edit) {
+  els.slugLabel.textContent = edit ? 'Folder (permanent):' : 'Folder:';
+  els.slugEdit.hidden = edit;
+  els.saveLabel.textContent = edit ? 'Save changes' : 'Save';
+  els.skip.hidden = edit;
+  els.discard.hidden = edit;
+  els.deleteMeme.hidden = !edit;
+  if (edit) els.dup.hidden = true;
+}
+
+function openMeme(slug) {
+  editing = slug;
+  current = null;
+  els.editor.hidden = !slug;
+  els.empty.hidden = !!slug;
+  els.emptyText.textContent = state.memes.length ? 'Pick a meme to edit it.' : 'No memes yet.';
+  for (const b of els.libraryList.querySelectorAll('button')) b.setAttribute('aria-current', String(b.dataset.slug === slug));
+  if (!slug) return;
+
+  const meme = state.memes.find((m) => m.slug === slug);
+  els.preview.src = `/api/meme/${encodeURIComponent(slug)}`;
+  els.form.reset();
+  els.slug.hidden = true;
+  els.error.hidden = true;
+  markInvalid([]);
+  els.caption.value = meme.caption ?? '';
+  els.category.value = meme.category ?? '';
+  els.language.value = meme.language ?? '';
+  els.source.value = meme.source ?? '';
+  els.author.value = meme.author ?? '';
+  els.description.value = meme.description ?? '';
+  els.mine.checked = meme.mine === true;
+  els.description.closest('details').open = !!meme.description;
+  tags = [...(meme.tags ?? [])];
+  renderTags();
+  els.gitCommit.checked = remember.get('commit') !== 'no';
+  els.gitPush.checked = pushThisSession;
+  setMode(true);
+  els.slugPreview.textContent = slug;
+  els.caption.focus();
 }
 
 function renderQueue() {
@@ -76,6 +159,9 @@ function renderQueue() {
 
 function openFile(name) {
   current = name;
+  editing = null;
+  els.emptyText.textContent = 'The inbox is empty. Drop an image to start.';
+  setMode(false);
   els.editor.hidden = !name;
   els.empty.hidden = !!name;
   for (const b of els.queue.querySelectorAll('button')) {
@@ -111,7 +197,7 @@ function currentSlug() {
 }
 
 function updateSlug() {
-  if (els.slug.hidden) els.slugPreview.textContent = currentSlug();
+  if (!editing && els.slug.hidden) els.slugPreview.textContent = currentSlug();
 }
 
 function renderTags() {
@@ -182,7 +268,7 @@ function markInvalid(fields) {
 }
 
 async function saveCurrent() {
-  if (!current || els.save.disabled) return;
+  if ((!current && !editing) || els.save.disabled) return;
   const meta = formData();
   const missing = ['caption', 'source', 'author'].filter((k) => !meta[k].trim());
   markInvalid(missing);
@@ -195,21 +281,28 @@ async function saveCurrent() {
   els.error.hidden = true;
   els.save.disabled = true;
   try {
-    const body = { inboxFile: current, meta, allowDuplicate: els.dupAllow.checked };
-    if (!els.slug.hidden) body.slug = els.slug.value;
-    body.git = { commit: els.gitCommit.checked, push: els.gitCommit.checked && els.gitPush.checked };
-    const { slug, git } = await api('/api/memes', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+    const gitOptions = { commit: els.gitCommit.checked, push: els.gitCommit.checked && els.gitPush.checked };
+    const wasEditing = editing;
+    let request;
+    if (wasEditing) {
+      request = [`/api/memes/${encodeURIComponent(wasEditing)}`, 'PUT', { meta, git: gitOptions }];
+    } else {
+      const body = { inboxFile: current, meta, allowDuplicate: els.dupAllow.checked, git: gitOptions };
+      if (!els.slug.hidden) body.slug = els.slug.value;
+      request = ['/api/memes', 'POST', body];
+    }
+    const { slug, git } = await api(request[0], {
+      method: request[1], headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(request[2]),
     });
-    for (const key of REMEMBERED) remember.set(key, els[key].value);
+    if (!wasEditing) for (const key of REMEMBERED) remember.set(key, els[key].value);
     remember.set('commit', els.gitCommit.checked ? 'yes' : 'no');
     pushThisSession = els.gitPush.checked;
-    let message = `Saved memes/${slug}`;
+    let message = wasEditing ? `Updated memes/${slug}` : `Saved memes/${slug}`;
     if (git?.pushed) message += ', committed and pushed';
     else if (git?.committed) message += ', committed';
     if (git?.error) message += `. Git problem: ${git.error}`;
     toast(message, git?.error ? 10000 : 2500);
-    current = null;
+    if (!wasEditing) current = null;
     await refresh();
   } catch (err) {
     els.error.textContent = err.message;
@@ -222,6 +315,31 @@ async function saveCurrent() {
 els.form.addEventListener('submit', (e) => { e.preventDefault(); saveCurrent(); });
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); saveCurrent(); }
+});
+
+els.tabInbox.addEventListener('click', () => setTab('inbox'));
+els.tabLibrary.addEventListener('click', () => setTab('library'));
+els.libraryFilter.addEventListener('input', renderLibrary);
+
+els.deleteMeme.addEventListener('click', async () => {
+  if (!editing) return;
+  const slug = editing;
+  const committing = els.gitCommit.checked;
+  const note = committing ? 'The deletion will be committed; the meme stays in git history.' : 'It is not committed, so git cannot restore it unless it was committed before.';
+  if (!confirm(`Delete memes/${slug}?\n\n${note}`)) return;
+  try {
+    const { git } = await api(`/api/memes/${encodeURIComponent(slug)}`, {
+      method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ git: { commit: committing, push: committing && els.gitPush.checked } }),
+    });
+    pushThisSession = els.gitPush.checked;
+    editing = null;
+    toast(git?.error ? `Deleted memes/${slug}. Git problem: ${git.error}` : `Deleted memes/${slug}${git?.committed ? ', committed' : ''}`, git?.error ? 10000 : 2500);
+    await refresh();
+  } catch (err) {
+    els.error.textContent = err.message;
+    els.error.hidden = false;
+  }
 });
 
 $('skip').addEventListener('click', () => {
