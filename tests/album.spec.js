@@ -1,6 +1,11 @@
 import { test, expect } from '@playwright/test';
 
-const SAMPLE_COUNT = 5;
+// The tests follow the real content: whatever is in memes/ is what the album must show.
+let index;
+
+test.beforeAll(async ({ request }) => {
+  index = await (await request.get('/meme/generated/index.json')).json();
+});
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/meme/');
@@ -8,7 +13,7 @@ test.beforeEach(async ({ page }) => {
 
 test('renders one card per meme with caption and attribution', async ({ page }) => {
   const cards = page.locator('.card');
-  await expect(cards).toHaveCount(SAMPLE_COUNT);
+  await expect(cards).toHaveCount(index.length);
   for (const card of await cards.all()) {
     await expect(card.locator('.caption')).not.toBeEmpty();
     await expect(card.locator('.credit')).toHaveText(/^by .+/);
@@ -17,7 +22,7 @@ test('renders one card per meme with caption and attribution', async ({ page }) 
 
 test('all thumbnails load', async ({ page }) => {
   const imgs = page.locator('.card img');
-  await expect(imgs).toHaveCount(SAMPLE_COUNT);
+  await expect(imgs).toHaveCount(index.length);
   for (const img of await imgs.all()) {
     await img.scrollIntoViewIfNeeded();
     await expect.poll(() => img.evaluate((el) => el.complete && el.naturalWidth > 0)).toBe(true);
@@ -35,8 +40,7 @@ test('every asset URL lives under the /meme/ base path', async ({ page }) => {
 test('index.json is served under the base path', async ({ request }) => {
   const res = await request.get('/meme/generated/index.json');
   expect(res.ok()).toBe(true);
-  const index = await res.json();
-  expect(index).toHaveLength(SAMPLE_COUNT);
+  expect(index.length).toBeGreaterThan(0);
   for (const m of index) {
     expect(m.source).toBeTruthy();
     expect(m.author).toBeTruthy();
@@ -58,13 +62,14 @@ test('clicking a still meme copies a PNG to the clipboard', async ({ page }) => 
 });
 
 test('clicking an animated GIF copies its link instead', async ({ page }) => {
-  const button = page.locator('button.copy[data-animated="true"]');
-  await expect(button).toHaveCount(1);
+  const animated = index.filter((m) => m.animated);
+  test.skip(!animated.length, 'no animated GIF in memes/ right now');
+  const button = page.locator('button.copy[data-animated="true"]').first();
   await button.click();
   await expect(button.locator('.badge')).toHaveText('Link copied');
 
   const text = await page.evaluate(() => navigator.clipboard.readText());
-  expect(text).toMatch(/\/meme\/generated\/loading-gif\/animated\.gif$/);
+  expect(text).toMatch(new RegExp(`/meme/generated/${animated[0].slug}/animated\\.gif$`));
 });
 
 test('shows an error badge when the copy asset is missing', async ({ page }) => {
