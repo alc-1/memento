@@ -4,6 +4,13 @@ import '../styles/global.css';
 
 const memes = JSON.parse(readFileSync('public/generated/index.json', 'utf8'));
 const base = import.meta.env.BASE_URL;
+
+// Filter chips list only values that exist in the content, and a group with a single value is not shown.
+const facet = (key) => [...new Set(memes.map((m) => m[key]).filter(Boolean))].sort();
+const facets = [
+  { key: 'category', label: 'Category', values: facet('category') },
+  { key: 'language', label: 'Language', values: facet('language') },
+].filter((f) => f.values.length > 1);
 ---
 
 <!doctype html>
@@ -21,9 +28,29 @@ const base = import.meta.env.BASE_URL;
     </header>
 
     <main>
+      <form class="controls" role="search" onsubmit="return false">
+        <label class="search">
+          <span class="sr-only">Search memes</span>
+          <input id="q" type="search" placeholder="Search memes  ( / )" autocomplete="off" />
+        </label>
+        {facets.map((f) => (
+          <div class="chips" role="group" aria-label={f.label} data-facet={f.key}>
+            <button type="button" aria-pressed="true" data-value="">All</button>
+            {f.values.map((v) => (
+              <button type="button" aria-pressed="false" data-value={v}>{v}</button>
+            ))}
+          </div>
+        ))}
+        <p id="status" aria-live="polite"></p>
+      </form>
+
+      <p id="none" hidden>
+        No meme matches. <button type="button" id="clear">Clear search and filters</button>
+      </p>
+
       <ul class="grid">
         {memes.map((m) => (
-          <li class="card">
+          <li class="card" data-slug={m.slug}>
             <button
               type="button"
               class="copy"
@@ -48,6 +75,7 @@ const base = import.meta.env.BASE_URL;
 
     <script>
       import '../scripts/copy.js';
+      import '../scripts/filter.js';
     </script>
   </body>
 </html>
