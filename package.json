@@ -8,10 +8,15 @@
     "content": "node scripts/build-content.mjs",
     "dev": "npm run content && astro dev",
     "build": "npm run content && astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui"
   },
   "dependencies": {
     "astro": "^5.0.0",
     "sharp": "^0.35.5"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1"
   }
 }
