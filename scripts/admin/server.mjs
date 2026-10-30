@@ -9,6 +9,7 @@ import { findOriginal, validateMeta, SLUG_RE } from '../lib/validate.mjs';
 import { slugify, uniqueSlug } from '../lib/slug.mjs';
 import { hashBytes, indexOriginals } from '../lib/hash.mjs';
 import { buildMeta, writeMeta } from '../lib/meta.mjs';
+import { commitMeme } from './git.mjs';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const ADMIN_DIR = path.join(REPO_ROOT, 'admin');
@@ -198,7 +199,12 @@ export function createAdminServer({ root = process.env.MEMENTO_ROOT ?? REPO_ROOT
         throw err;
       }
       await rm(source);
-      return { slug, meta };
+
+      const result = { slug, meta };
+      if (body.git?.commit) {
+        result.git = await commitMeme(root, { slug, inboxFile: body.inboxFile, push: body.git.push === true });
+      }
+      return result;
     },
   };
 

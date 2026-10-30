@@ -8,7 +8,7 @@ const els = {
   language: $('language'), chips: $('chips'), tagInput: $('tag-input'), suggestions: $('tag-suggestions'),
   mine: $('mine'), source: $('source'), author: $('author'), description: $('description'),
   error: $('error'), save: $('save'), dup: $('dup'), dupSlug: $('dup-slug'), dupImg: $('dup-img'),
-  dupAllow: $('dup-allow'), toast: $('toast'), drop: $('drop'),
+  dupAllow: $('dup-allow'), gitCommit: $('git-commit'), gitPush: $('git-push'), toast: $('toast'), drop: $('drop'),
 };
 
 const MINE_AUTHOR = 'Alvaro';
@@ -18,6 +18,7 @@ const REMEMBERED = ['category', 'language', 'source', 'author'];
 let state = { inbox: [], slugs: [], tags: [] };
 let current = null; // inbox file name being edited
 let tags = [];
+let pushThisSession = false;
 
 // Per-viewer convenience only: the form still works if storage is unavailable.
 const remember = {
@@ -32,11 +33,11 @@ async function api(path, options) {
   return body;
 }
 
-function toast(message) {
+function toast(message, ms = 2500) {
   els.toast.textContent = message;
   els.toast.hidden = false;
   clearTimeout(toast.timer);
-  toast.timer = setTimeout(() => (els.toast.hidden = true), 2500);
+  toast.timer = setTimeout(() => (els.toast.hidden = true), ms);
 }
 
 function fillDatalist(id, items) {
@@ -91,6 +92,9 @@ function openFile(name) {
   tags = [];
   renderTags();
   for (const key of REMEMBERED) els[key].value = remember.get(key);
+  // Commit is on by default and remembered; push stays off until ticked, and sticks for the session.
+  els.gitCommit.checked = remember.get('commit') !== 'no';
+  els.gitPush.checked = pushThisSession;
 
   els.dup.hidden = !file.duplicateOf;
   els.dupAllow.checked = false;
@@ -193,11 +197,18 @@ async function saveCurrent() {
   try {
     const body = { inboxFile: current, meta, allowDuplicate: els.dupAllow.checked };
     if (!els.slug.hidden) body.slug = els.slug.value;
-    const { slug } = await api('/api/memes', {
+    body.git = { commit: els.gitCommit.checked, push: els.gitCommit.checked && els.gitPush.checked };
+    const { slug, git } = await api('/api/memes', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
     });
     for (const key of REMEMBERED) remember.set(key, els[key].value);
-    toast(`Saved memes/${slug}`);
+    remember.set('commit', els.gitCommit.checked ? 'yes' : 'no');
+    pushThisSession = els.gitPush.checked;
+    let message = `Saved memes/${slug}`;
+    if (git?.pushed) message += ', committed and pushed';
+    else if (git?.committed) message += ', committed';
+    if (git?.error) message += `. Git problem: ${git.error}`;
+    toast(message, git?.error ? 10000 : 2500);
     current = null;
     await refresh();
   } catch (err) {

@@ -135,6 +135,9 @@ input.invalid { border-color: var(--error); }
 .banner p { margin: 0; }
 .banner img { max-height: 90px; justify-self: start; border-radius: 6px; }
 
+.git { display: flex; gap: 1.5rem; }
+.git:has(#git-commit:not(:checked)) label:has(#git-push) { opacity: 0.5; }
+
 .error { color: var(--error); margin: 0; }
 .actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
 .actions .danger { margin-left: auto; }

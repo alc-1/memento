@@ -26,7 +26,7 @@ export default defineConfig({
         ...devices['Pixel 7'],
         permissions: ['clipboard-read', 'clipboard-write'],
       },
-      testIgnore: /(validate|slug|admin-api|admin-ui)\.spec\.js/, // browser-independent, run once
+      testIgnore: /(validate|slug|admin-api|admin-ui|admin-git)\.spec\.js/, // browser-independent, run once
     },
   ],
   // Tests run against the real production build served under /meme/.

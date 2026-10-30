@@ -38,6 +38,7 @@ test('add an image, fill the form, save: folder and meta.json are written', asyn
 
   await page.locator('#mine').check();
   await expect(page.locator('#author')).toHaveValue('Alvaro');
+  await page.locator('#git-commit').uncheck();
   await page.locator('#language').fill('fr');
   await page.keyboard.press('Control+Enter');
 
