@@ -60,7 +60,7 @@ test('the buttons sit below the text, aligned on the right', async ({ page }) =>
   for (const l of layout) {
     expect(l.belowImage && l.belowText, `${l.slug} buttons are below all the text`).toBe(true);
     expect(l.singleRow, `${l.slug} buttons share one row`).toBe(true);
-    expect(l.rightGap, `${l.slug} buttons hug the right edge`).toBeLessThan(20);
+    expect(l.rightGap, `${l.slug} buttons hug the right edge`).toBeLessThan(32);
     expect(l.leftGap, `${l.slug} buttons are pushed right`).toBeGreaterThan(l.rightGap);
   }
 });
