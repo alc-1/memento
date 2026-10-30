@@ -12,6 +12,12 @@ const facets = [
   { key: 'category', label: 'Category', values: facet('category') },
   { key: 'language', label: 'Language', values: facet('language') },
 ].filter((f) => f.values.length > 1);
+
+// Topics: the most used tags, for browsing by mood or subject.
+const tagCounts = new Map();
+for (const m of memes) for (const t of m.tags) tagCounts.set(t, (tagCounts.get(t) ?? 0) + 1);
+const topics = [...tagCounts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 12);
+const CARD_TAGS = 3;
 ---
 
 <!doctype html>
@@ -42,6 +48,16 @@ const facets = [
             ))}
           </div>
         ))}
+        {topics.length > 0 && (
+          <div class="topics" role="group" aria-label="Topics">
+            <span class="topics-label">Topics</span>
+            {topics.map(([tag, count]) => (
+              <button type="button" class="tag" aria-pressed="false" data-tag={tag}>
+                #{tag}<span class="count">{count}</span>
+              </button>
+            ))}
+          </div>
+        )}
         <p id="status" aria-live="polite"></p>
       </form>
 
@@ -53,11 +69,18 @@ const facets = [
         {memes.map((m) => (
           <li class="card" data-slug={m.slug}>
             <button type="button" class="view" aria-label={`View larger: ${m.caption}`} aria-haspopup="dialog">
-              <img src={`${base}${m.thumb}`} alt={m.caption} loading="lazy" />
+              <img src={`${base}${m.thumb}`} alt={m.caption} width={m.thumbWidth} height={m.thumbHeight} loading="lazy" />
             </button>
             <p class="caption">{m.caption}</p>
             {isKnownAuthor(m.author) && <p class="credit">by {m.author}</p>}
             {m.animated && <p class="hint">Animated: copy gives the link</p>}
+            {m.tags.length > 0 && (
+              <ul class="tags" aria-label="Tags">
+                {m.tags.slice(0, CARD_TAGS).map((tag) => (
+                  <li><button type="button" class="tag" aria-pressed="false" data-tag={tag}>#{tag}</button></li>
+                ))}
+              </ul>
+            )}
             <div class="actions">
               <button
                 type="button"

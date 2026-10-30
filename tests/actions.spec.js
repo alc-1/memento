@@ -45,7 +45,7 @@ test('the buttons sit below the text, aligned on the right', async ({ page }) =>
       const box = (el) => el.getBoundingClientRect();
       const actions = box(c.querySelector('.actions'));
       const card = box(c);
-      const texts = [...c.querySelectorAll('.caption, .credit, .hint')].map(box);
+      const texts = [...c.querySelectorAll('.caption, .credit, .hint, .tags')].map(box);
       const buttons = [...c.querySelectorAll('.act')].map(box);
       return {
         slug: c.dataset.slug,

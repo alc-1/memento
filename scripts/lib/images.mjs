@@ -3,7 +3,7 @@ import sharp from 'sharp';
 const THUMB_WIDTH = 400;
 const FULL_WIDTH = 1200;
 
-/** Generates thumb.webp, full.webp and (for stills) copy.png. Returns { animated }. */
+/** Generates thumb.webp, full.webp and (for stills) copy.png. Returns { animated, width, height } (thumbnail size). */
 export async function generateImages(srcPath, outDir) {
   const meta = await sharp(srcPath, { animated: true }).metadata();
   const animated = (meta.pages ?? 1) > 1;
@@ -15,6 +15,8 @@ export async function generateImages(srcPath, outDir) {
     .resize({ width: THUMB_WIDTH, withoutEnlargement: true })
     .webp({ quality: 75 })
     .toFile(`${outDir}/thumb.webp`);
+
+  const thumb = await sharp(`${outDir}/thumb.webp`).metadata();
 
   await still()
     .resize({ width: FULL_WIDTH, withoutEnlargement: true })
@@ -29,5 +31,5 @@ export async function generateImages(srcPath, outDir) {
       .toFile(`${outDir}/copy.png`);
   }
 
-  return { animated };
+  return { animated, width: thumb.width, height: thumb.height };
 }
