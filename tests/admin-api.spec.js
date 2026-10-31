@@ -51,7 +51,7 @@ test('saves an inbox image as a valid meme folder', async () => {
   expect((await res.json()).slug).toBe('chaton-du-lundi');
 
   const dir = path.join(root, 'memes', 'chaton-du-lundi');
-  expect((await readdir(dir)).sort()).toEqual(['meta.json', 'original.png']);
+  expect((await readdir(dir)).sort()).toEqual(['generated', 'meta.json', 'original.png']);
   const meta = JSON.parse(await readFile(path.join(dir, 'meta.json'), 'utf8'));
   expect(meta).toMatchObject({ caption: 'Chaton du lundi', tags: ['chat'], mine: false });
   expect(existsSync(path.join(root, 'inbox', 'cat.png'))).toBe(false);
@@ -156,7 +156,7 @@ test('PUT updates meta.json only; the folder, image and slug stay', async () => 
   const meta = JSON.parse(await readFile(path.join(dir, 'meta.json'), 'utf8'));
   expect(meta).toMatchObject({ caption: 'Un autre titre', tags: ['chat', 'lundi'], mine: true });
   expect(await readFile(path.join(dir, 'original.png'))).toEqual(imageBefore);
-  expect((await readdir(dir)).sort()).toEqual(['meta.json', 'original.png']);
+  expect((await readdir(dir)).sort()).toEqual(['generated', 'meta.json', 'original.png']);
   expect(existsSync(path.join(root, 'memes', 'hijack'))).toBe(false);
 });
 

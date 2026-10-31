@@ -12,7 +12,7 @@ Full brief and reasoning: `docs/brief.md`. If a decision changes, update this fi
 ## Hard rules
 - Build with base path `/meme/`. All asset and `index.json` links must work under that path.
 - No accents in URLs, folder names or filenames. Slugs are lowercase ASCII kebab-case.
-- Only originals and `meta.json` are committed. Thumbnails, WebP versions, clipboard PNGs and `index.json` are generated at build time and never committed.
+- Committed per meme: the original, `meta.json` and `generated/` (thumbnail, WebP, clipboard PNG, `stamp.json`). `index.json` and `public/generated/` are build output, never committed. Repo size is traded for a CI time that does not grow with the number of memes (`docs/adr/0002-commit-generated-images.md`).
 - The Copy button uses the Clipboard API with PNG only. Animated GIFs fall back to a "copy link" button.
 - Every meme requires `source` and `author`. Attribution is shown on each card.
 
@@ -24,6 +24,7 @@ memes/
   chaton-lundi/
     original.png
     meta.json
+    generated/    thumb.webp, full.webp, copy.png, stamp.json
 inbox/        untagged images waiting for the admin page
 ```
 
@@ -32,7 +33,7 @@ On slug collision, append `-2`.
 
 ## Build script
 - Globs `memes/*/meta.json`, validates it, and fails loudly if a folder lacks its image or a mandatory field.
-- Generates thumbnails, optimized WebP and a clipboard-ready PNG per meme, plus one merged `index.json`.
+- Per meme, generates (only when `memes/<slug>/generated/` is missing or its `stamp.json` hash no longer matches the original; `scripts/lib/derived.mjs`) a thumbnail, optimized WebP and a clipboard-ready PNG, then copies them with the original into `public/generated/<slug>/` and writes one merged `index.json`. The admin generates them on save and commits them with the meme.
 - Optional: content hash at import to catch duplicates.
 
 ## Admin page
@@ -48,6 +49,9 @@ Masonry album (CSS columns; each card keeps its image's own aspect ratio, nothin
 3. Admin page.
 4. Deployment into alcosta.ch/meme.
 5. Later: count every click-to-copy as the popularity KPI (small Cloudflare Worker with KV or D1 keyed by slug, "Popular" sort). Counts never go into git.
+
+## Decisions
+Architecture decisions are recorded in `docs/adr/` (one numbered file each). Add one when a choice changes how the project works.
 
 ## Working style
 - Stack is chosen in plan mode before coding. Keep it boring and light, no heavy framework.

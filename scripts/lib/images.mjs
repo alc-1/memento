@@ -11,12 +11,11 @@ export async function generateImages(srcPath, outDir) {
   // First frame only for the thumbnail and the stills.
   const still = () => sharp(srcPath).rotate();
 
-  await still()
+  // toFile reports the output size; re-opening thumb.webp left it locked on Windows, blocking deletion.
+  const thumb = await still()
     .resize({ width: THUMB_WIDTH, withoutEnlargement: true })
     .webp({ quality: 75 })
     .toFile(`${outDir}/thumb.webp`);
-
-  const thumb = await sharp(`${outDir}/thumb.webp`).metadata();
 
   await still()
     .resize({ width: FULL_WIDTH, withoutEnlargement: true })

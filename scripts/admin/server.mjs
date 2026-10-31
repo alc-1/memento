@@ -9,6 +9,7 @@ import { findOriginal, validateMeta, SLUG_RE } from '../lib/validate.mjs';
 import { slugify, uniqueSlug } from '../lib/slug.mjs';
 import { hashBytes, indexOriginals } from '../lib/hash.mjs';
 import { buildMeta, writeMeta } from '../lib/meta.mjs';
+import { ensureDerived } from '../lib/derived.mjs';
 import { commitMeme, commitPaths } from './git.mjs';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -200,6 +201,9 @@ export function createAdminServer({ root = process.env.MEMENTO_ROOT ?? REPO_ROOT
         throw err;
       }
       await rm(source);
+
+      // Optimized versions are made now and committed with the meme, so neither the build nor CI converts anything.
+      await ensureDerived(path.join(memesDir, slug, `original.${ext}`), path.join(memesDir, slug, 'generated'));
 
       const result = { slug, meta };
       if (body.git?.commit) {

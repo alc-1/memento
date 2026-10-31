@@ -51,7 +51,7 @@ Illustrations will mostly be work by Roberto Ferraro. Author rights need care: a
 
 A static site, with everything stored in git. No backend, and free hosting such as Cloudflare Pages.
 
-- **Originals only in git:** thumbnails, WebP versions and clipboard-ready PNGs are generated at build time, so the repo stays small.
+- **Originals and their generated images in git:** thumbnails, WebP versions and clipboard-ready PNGs are generated once, when a meme is added, and committed in `memes/<slug>/generated/`, so CI time does not grow with the album (see `docs/adr/0002-commit-generated-images.md`; originally generated at every build).
 - **One folder per meme, image and meta.json side by side:** readable diffs, no orphans, no edit conflicts. A build script reads every meta.json, fails if a folder lacks its image, and merges them into a single index.json that the site loads.
 - **Click to copy:** the browser Clipboard API reliably copies PNG only, so a PNG version is built for every meme.
 - **Search:** client-side, for example with Fuse.js. Plenty fast for a few hundred memes.

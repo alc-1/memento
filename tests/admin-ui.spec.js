@@ -49,7 +49,8 @@ test('add an image, fill the form, save: folder and meta.json are written', asyn
   await expect(page.locator('#empty')).toBeVisible();
 
   const dir = path.join(root, 'memes', 'reunion-inutile');
-  expect((await readdir(dir)).sort()).toEqual(['meta.json', 'original.png']);
+  expect((await readdir(dir)).sort()).toEqual(['generated', 'meta.json', 'original.png']);
+  expect((await readdir(path.join(dir, 'generated'))).sort()).toEqual(['copy.png', 'full.webp', 'stamp.json', 'thumb.webp']);
   expect(JSON.parse(await readFile(path.join(dir, 'meta.json'), 'utf8'))).toEqual({
     caption: 'Réunion inutile', language: 'FR', tags: ['bureau', 'café'],
     source: 'original', author: 'Alvaro', mine: true,

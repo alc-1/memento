@@ -1,9 +1,9 @@
-import { readdir, readFile, writeFile, mkdir, rm, copyFile } from 'node:fs/promises';
+import { readdir, readFile, writeFile, mkdir, rm, cp, copyFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { findOriginal, validateMeta } from './lib/validate.mjs';
-import { generateImages } from './lib/images.mjs';
+import { ensureDerived } from './lib/derived.mjs';
 
 const ROOT = process.env.MEMENTO_ROOT ?? path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const MEMES_DIR = path.join(ROOT, 'memes');
@@ -52,18 +52,21 @@ if (checkOnly) {
   process.exit(0);
 }
 
+// public/generated is rebuilt from scratch: the derived images committed in memes/<slug>/generated
+// (made by the admin, or here when missing or stale) plus each untouched original.
 await rm(OUT_DIR, { recursive: true, force: true });
 await mkdir(OUT_DIR, { recursive: true });
 
 const index = [];
 for (const { slug, dir, meta, original } of loaded) {
   const outDir = path.join(OUT_DIR, slug);
-  await mkdir(outDir, { recursive: true });
-  const { animated, width, height } = await generateImages(path.join(dir, original), outDir);
+  const genDir = path.join(dir, 'generated');
+  const { animated, width, height } = await ensureDerived(path.join(dir, original), genDir);
 
-  // The untouched original is published for the download button. It also serves as the
-  // animated GIF's "copy link" target and its large view, so GIFs are not stored twice.
+  // The original is published for the download button, and doubles as the animated GIF's
+  // "copy link" target and large view, so GIFs are not stored twice.
   const ext = path.extname(original).toLowerCase();
+  await cp(genDir, outDir, { recursive: true });
   await copyFile(path.join(dir, original), path.join(outDir, `original${ext}`));
 
   index.push({

@@ -52,6 +52,10 @@ test('commit contains only the new meme, not unrelated work', async () => {
 
   expect(git('log', '-1', '--format=%s')).toBe('Add meme: hello-there');
   expect(git('show', '--name-only', '--format=', 'HEAD').split('\n').sort()).toEqual([
+    'memes/hello-there/generated/copy.png',
+    'memes/hello-there/generated/full.webp',
+    'memes/hello-there/generated/stamp.json',
+    'memes/hello-there/generated/thumb.webp',
     'memes/hello-there/meta.json',
     'memes/hello-there/original.png',
   ]);
