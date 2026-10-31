@@ -305,8 +305,14 @@ test.describe('smooth, minimal motion', () => {
   });
 
   test('moving to a card that is already in view does not scroll at all', async ({ page }) => {
+    // Start from a clean page with a tall viewport. The shared setup begins a smooth scroll at the small
+    // viewport, which would still be running here and move scrollY under the measurement.
     await page.setViewportSize({ width: 1280, height: 1400 }); // tall enough for the first row
-    await page.evaluate(() => scrollTo(0, 0));
+    await page.goto('/meme/');
+    await ready(page);
+    await page.keyboard.press('/');
+    await page.keyboard.press('ArrowDown');
+    await expect.poll(() => sampleScroll(page, 200).then((seen) => seen.length)).toBe(1); // settled
     const before = await page.evaluate(() => scrollY);
     await page.keyboard.press('ArrowRight');
     const seen = await sampleScroll(page, 500);
