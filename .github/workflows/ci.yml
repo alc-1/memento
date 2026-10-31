@@ -62,12 +62,12 @@ jobs:
 
       - run: npm ci
 
-      # GitHub Pages serves the repo at /<repo-name>/, unlike alcosta.ch/meme.
+      # Served from the root of the custom domain meme.alcosta.ch (Pages custom domain set on this repo).
       - name: Build
         run: npm run build
         env:
-          BASE_PATH: /${{ github.event.repository.name }}/
-          SITE: https://${{ github.repository_owner }}.github.io
+          BASE_PATH: /
+          SITE: https://meme.alcosta.ch
 
       - uses: actions/upload-pages-artifact@v5
         with:

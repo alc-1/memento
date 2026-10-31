@@ -10,7 +10,7 @@ chat apps show a generic preview for it. A Share button needs a link that identi
 ## Decision
 - Each meme gets a static page at `/meme/m/<slug>/` (`src/pages/m/[slug].astro`, built from `index.json`). Clean URL: no extension, the slug is the permanent ID.
 - The page carries Open Graph and Twitter tags (title = caption, image = the clipboard PNG, or the GIF itself for animated memes) so WhatsApp, Slack and iMessage show the picture.
-- Previews need absolute URLs, so `astro.config.mjs` sets `site` from the `SITE` env variable, default `https://alcosta.ch`. The GitHub Pages deploy sets it to the owner's `github.io`.
+- Previews need absolute URLs, so `astro.config.mjs` sets `site` from the `SITE` env variable, default `https://meme.alcosta.ch`.
 - The Share button (fourth card button) opens the system share sheet on touch devices (`navigator.share`, no fine pointer) and copies the link on computers, with a "Link copied" badge. Closing the sheet is not an error; any other share failure falls back to the clipboard.
 - Rejected: `?meme=<slug>` on the album (simpler, but previews would show nothing about the meme).
 
