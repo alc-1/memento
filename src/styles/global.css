@@ -44,6 +44,8 @@ header, main {
   padding: 1rem;
 }
 
+/* Title and byline share one baseline, and wrap onto two lines only when the screen is too narrow. */
+.brand { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 0.75rem; }
 h1 { margin: 0.5rem 0; font-size: 2rem; font-weight: 400; }
 h1 strong { color: var(--accent); font-weight: 800; }
 header p { margin: 0; color: var(--muted); }
@@ -198,9 +200,20 @@ dialog form { position: absolute; top: 0.4rem; right: 0.4rem; margin: 0; }
 #info-dialog a { color: var(--accent); }
 
 .caption { margin: 0; font-weight: 600; }
-.credit, .hint { margin: 0; font-size: 0.85rem; color: var(--muted); }
+.credit, .hint, .byline { margin: 0; font-size: 0.85rem; color: var(--muted); }
 /* Monospace is reserved for tag counts, keyboard hints and source attributions. */
-.credit, #info-dialog dd.source { font-family: var(--mono); font-size: 0.8rem; }
+.credit, .byline, #info-dialog dd.source { font-family: var(--mono); font-size: 0.8rem; }
+
+/* The byline is an author credit that happens to be a link: same look, plus a quiet underline. */
+.byline {
+  text-decoration: underline;
+  text-decoration-color: var(--line-strong);
+  text-underline-offset: 0.25em;
+  transition: color 0.15s, text-decoration-color 0.15s;
+}
+.byline:hover { color: var(--fg); text-decoration-color: var(--accent); }
+.byline:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 3px; }
+@media (prefers-reduced-motion: reduce) { .byline { transition: none; } }
 
 .tags { display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0.35rem 0 0; padding: 0; list-style: none; }
 .tag {

@@ -18,6 +18,9 @@ const tagCounts = new Map();
 for (const m of memes) for (const t of m.tags) tagCounts.set(t, (tagCounts.get(t) ?? 0) + 1);
 const topics = [...tagCounts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 12);
 const CARD_TAGS = 3;
+
+// The site's own byline, shown next to the title and styled like the authors on the cards.
+const OWNER = { name: 'Alvaro', url: 'https://www.linkedin.com/in/alcosta1/' };
 ---
 
 <!doctype html>
@@ -30,7 +33,16 @@ const CARD_TAGS = 3;
   </head>
   <body>
     <header>
-      <h1><strong>Meme</strong>nto</h1>
+      <div class="brand">
+        <h1><strong>Meme</strong>nto</h1>
+        <a
+          class="byline"
+          href={OWNER.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`by ${OWNER.name}, LinkedIn profile (opens in a new tab)`}
+        >by {OWNER.name}</a>
+      </div>
       <p>There is always a time for memes. Yet we don't find them when we need them. They are now one-click away.</p>
     </header>
 
