@@ -39,7 +39,7 @@ const CARD_TAGS = 3;
         <label class="search">
           <span class="sr-only">Search memes</span>
           <span class="prompt" aria-hidden="true">$</span>
-          <input id="q" type="search" placeholder="search memes" autocomplete="off" spellcheck="false" />
+          <input id="q" type="search" placeholder="search memes" autocomplete="off" spellcheck="false" aria-keyshortcuts="/" />
           <kbd class="shortcut" aria-hidden="true">/</kbd>
         </label>
         {facets.map((f) => (
@@ -69,7 +69,7 @@ const CARD_TAGS = 3;
 
       <ul class="grid">
         {memes.map((m) => (
-          <li class="card" data-slug={m.slug}>
+          <li class="card" data-slug={m.slug} tabindex="-1" aria-label={m.caption}>
             <button type="button" class="view" aria-label={`View larger: ${m.caption}`} aria-haspopup="dialog">
               <img src={`${base}${m.thumb}`} alt={m.caption} width={m.thumbWidth} height={m.thumbHeight} loading="lazy" />
             </button>
@@ -132,6 +132,7 @@ const CARD_TAGS = 3;
     <script>
       import '../scripts/copy.js';
       import '../scripts/viewer.js';
+      import '../scripts/cardnav.js';
       import '../scripts/filter.js';
     </script>
   </body>

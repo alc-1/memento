@@ -14,9 +14,10 @@ function text(tag, content) {
   return Object.assign(document.createElement(tag), { textContent: content });
 }
 
-function row(label, value) {
+function row(label, value, className = '') {
   if (value === null || value === undefined || value === '') return [];
   const dd = document.createElement('dd');
+  dd.className = className;
   dd.append(value); // a string or a link element
   return [text('dt', label), dd];
 }
@@ -42,7 +43,7 @@ function openInfo(meme) {
   infoTitle.textContent = meme.caption;
   infoList.replaceChildren(
     ...row('Author', isKnownAuthor(meme.author) ? meme.author : ''),
-    ...row('Source', sourceValue(meme.source)),
+    ...row('Source', sourceValue(meme.source), 'source'),
     ...row('Category', meme.category),
     ...row('Language', meme.language),
     ...row('Tags', meme.tags.join(', ')),
