@@ -13,8 +13,9 @@ const base = import.meta.env.BASE_URL;
 // Link previews need absolute URLs.
 const absolute = (path) => new URL(path, Astro.site).href;
 const pageUrl = absolute(`${base}m/${meme.slug}/`);
-const description = meme.description || 'There is always a time for memes. One click copies a meme, ready to paste into any chat.';
 const credit = isKnownAuthor(meme.author) ? `by ${meme.author}` : '';
+const description = meme.description || credit || 'There is always a time for memes. One click copies a meme, ready to paste into any chat.';
+const previewUrl = absolute(`${base}${meme.preview}`);
 const source = /^https?:\/\/\S+$/i.test(meme.source) ? meme.source : '';
 ---
 
@@ -31,8 +32,14 @@ const source = /^https?:\/\/\S+$/i.test(meme.source) ? meme.source : '';
     <meta property="og:title" content={meme.caption} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={pageUrl} />
-    <meta property="og:image" content={absolute(`${base}${meme.copy}`)} />
+    <meta property="og:image" content={previewUrl} />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content={meme.previewWidth} />
+    <meta property="og:image:height" content={meme.previewHeight} />
+    <meta property="og:image:alt" content={meme.caption} />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={meme.caption} />
+    <meta name="twitter:image" content={previewUrl} />
   </head>
   <body>
     <header>

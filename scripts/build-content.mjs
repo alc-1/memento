@@ -61,7 +61,7 @@ const index = [];
 for (const { slug, dir, meta, original } of loaded) {
   const outDir = path.join(OUT_DIR, slug);
   const genDir = path.join(dir, 'generated');
-  const { animated, width, height } = await ensureDerived(path.join(dir, original), genDir);
+  const { animated, width, height, previewWidth, previewHeight } = await ensureDerived(path.join(dir, original), genDir);
 
   // The original is published for the download button, and doubles as the animated GIF's
   // "copy link" target and large view, so GIFs are not stored twice.
@@ -83,6 +83,9 @@ for (const { slug, dir, meta, original } of loaded) {
     thumb: `generated/${slug}/thumb.webp`,
     thumbWidth: width,
     thumbHeight: height,
+    preview: `generated/${slug}/preview.jpg`,
+    previewWidth,
+    previewHeight,
     original: `generated/${slug}/original${ext}`,
     download: `${slug}${ext}`,
     // Large view and clipboard source: stills use the optimized versions, GIFs keep their animation.

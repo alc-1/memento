@@ -5,11 +5,11 @@ import { hashBytes } from './hash.mjs';
 import { generateImages } from './images.mjs';
 
 // Bump when the sizes or encoder settings in images.mjs change, so every meme regenerates.
-const RECIPE = 1;
+const RECIPE = 3;
 
 /**
- * Makes `genDir` (memes/<slug>/generated, committed) hold thumb.webp, full.webp and, for stills,
- * copy.png, unless its stamp says they already match the original. Returns { animated, width, height }.
+ * Makes `genDir` (memes/<slug>/generated, committed) hold thumb.webp, full.webp, preview.jpg and, for
+ * stills, copy.png, unless its stamp says they already match the original. Returns { animated, width, height, previewWidth, previewHeight }.
  * The stamp is written last, so an interrupted run is simply redone.
  */
 export async function ensureDerived(srcPath, genDir) {
@@ -20,7 +20,8 @@ export async function ensureDerived(srcPath, genDir) {
     try {
       const stamp = JSON.parse(await readFile(stampPath, 'utf8'));
       if (stamp.recipe === RECIPE && stamp.hash === hash) {
-        return { animated: stamp.animated, width: stamp.width, height: stamp.height };
+        const { animated, width, height, previewWidth, previewHeight } = stamp;
+        return { animated, width, height, previewWidth, previewHeight };
       }
     } catch {
       // Unreadable stamp: regenerate.

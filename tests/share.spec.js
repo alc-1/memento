@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import sharp from 'sharp';
 
 let index;
 
@@ -47,9 +48,18 @@ test('every meme has its own page with link-preview tags', async ({ request }) =
     expect(res.status(), m.slug).toBe(200);
     const html = await res.text();
     expect(html).toMatch(/<meta property="og:title" content="[^"]+"/);
-    const image = html.match(/<meta property="og:image" content="([^"]+)"/)[1];
-    expect(image).toMatch(/^https?:\/\/[^/]+\/meme\/generated\//);
-    expect((await request.get(new URL(image).pathname)).status(), `${m.slug} preview image`).toBe(200);
+    const tag = (name) => html.match(new RegExp(`<meta property="${name}" content="([^"]+)"`))[1];
+    const image = tag('og:image');
+    expect(image).toMatch(/^https?:\/\/[^/]+\/meme\/generated\/[a-z0-9-]+\/preview\.jpg$/);
+    const res2 = await request.get(new URL(image).pathname);
+    expect(res2.status(), `${m.slug} preview image`).toBe(200);
+    expect(res2.headers()['content-type']).toContain('image/jpeg');
+    const bytes = await res2.body();
+    // WhatsApp drops preview images over ~300 KB.
+    expect(bytes.length, `${m.slug} preview size`).toBeLessThan(300 * 1024);
+    const real = await sharp(bytes).metadata();
+    expect([Number(tag('og:image:width')), Number(tag('og:image:height'))]).toEqual([real.width, real.height]);
+    expect(real.width, `${m.slug} preview width`).toBeGreaterThanOrEqual(300);
     expect(html).toContain('href="/meme/"');
   }
 });
