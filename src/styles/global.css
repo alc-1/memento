@@ -67,15 +67,21 @@ header p { margin: 0; color: var(--muted); }
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 1px 3px rgb(0 0 0 / 0.15);
-  transition: border-color 0.2s, box-shadow 0.2s;
+  /* The ring is always there but transparent and a little further out, so keyboard focus eases in. */
+  outline: 2px solid transparent;
+  outline-offset: 6px;
+  transition: border-color 0.2s, box-shadow 0.2s, outline-color 0.15s, outline-offset 0.15s;
 }
 .card:hover, .card:focus-within {
   border-color: color-mix(in srgb, var(--accent) 65%, var(--line));
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent), 0 8px 28px var(--glow);
 }
 @media (prefers-reduced-motion: reduce) { .card { transition: none; } }
-/* Arrow-key navigation focuses the card itself: a sharp ring, keyboard only (never on mouse clicks). */
-.card:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+/* Arrow-key navigation focuses the card's <article>: the sharp ring is drawn on the card around it,
+   keyboard only (never on mouse clicks). */
+.card-focus { display: block; }
+.card-focus:focus, .card-focus:focus-visible { outline: none; }
+.card:has(> .card-focus:focus-visible) { outline-color: var(--focus); outline-offset: 2px; }
 
 /* Text block under the image: one padding for everything, so nothing hugs the picture. */
 .card-body { display: flex; flex-direction: column; gap: 0.3rem; padding: 1rem; }
@@ -159,6 +165,14 @@ dialog {
   color: var(--fg);
 }
 dialog::backdrop { background: rgb(0 0 0 / 0.75); }
+/* Dialogs ease in instead of appearing at once. */
+@keyframes dialog-in { from { opacity: 0; transform: scale(0.98); } }
+@keyframes backdrop-in { from { opacity: 0; } }
+dialog[open] { animation: dialog-in 0.15s ease-out; }
+dialog[open]::backdrop { animation: backdrop-in 0.15s ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  dialog[open], dialog[open]::backdrop { animation: none; }
+}
 dialog form { position: absolute; top: 0.4rem; right: 0.4rem; margin: 0; }
 .close {
   width: 2.5rem;

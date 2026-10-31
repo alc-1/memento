@@ -1,4 +1,5 @@
 import Fuse from 'fuse.js';
+import { focusSmooth, scrollToSmooth } from './motion.js';
 
 const grid = document.querySelector('.grid');
 const cards = new Map([...grid.children].map((li) => [li.dataset.slug, li]));
@@ -80,7 +81,7 @@ document.addEventListener('click', (event) => {
   syncControls();
   apply();
   if (state.tag && document.querySelector('.controls').getBoundingClientRect().top < 0) {
-    document.querySelector('.controls').scrollIntoView({ block: 'start' });
+    scrollToSmooth(document.querySelector('.controls'));
   }
 });
 
@@ -88,14 +89,14 @@ document.getElementById('clear').addEventListener('click', () => {
   Object.assign(state, { q: '', category: '', language: '', tag: '' });
   syncControls();
   apply();
-  input.focus();
+  focusSmooth(input);
 });
 
 document.addEventListener('keydown', (event) => {
   const typing = event.target.closest('input, textarea, select, [contenteditable]');
   if (event.key === '/' && !typing && !event.ctrlKey && !event.metaKey && !event.altKey) {
     event.preventDefault();
-    input.focus();
+    focusSmooth(input);
     input.select();
   }
   if (event.key === 'Escape' && event.target === input && input.value) {

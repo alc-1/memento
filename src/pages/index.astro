@@ -69,47 +69,49 @@ const CARD_TAGS = 3;
 
       <ul class="grid">
         {memes.map((m) => (
-          <li class="card" data-slug={m.slug} tabindex="-1" aria-label={m.caption}>
-            <button type="button" class="view" aria-label={`View larger: ${m.caption}`} aria-haspopup="dialog">
-              <img src={`${base}${m.thumb}`} alt={m.caption} width={m.thumbWidth} height={m.thumbHeight} loading="lazy" />
-            </button>
-            <div class="card-body">
-              <p class="caption">{m.caption}</p>
-              {isKnownAuthor(m.author) && <p class="credit">by {m.author}</p>}
-              {m.animated && <p class="hint">Animated: copy gives the link</p>}
-              {m.tags.length > 0 && (
-                <ul class="tags" aria-label="Tags">
-                  {m.tags.slice(0, CARD_TAGS).map((tag) => (
-                    <li><button type="button" class="tag" aria-pressed="false" data-tag={tag}>#{tag}</button></li>
-                  ))}
-                </ul>
-              )}
-              <div class="actions">
-                <button
-                  type="button"
-                  class="act copy"
-                  data-copy={`${base}${m.copy}`}
-                  data-animated={m.animated}
-                  title={m.animated ? 'Copy link' : 'Copy'}
-                  aria-label={m.animated ? `Copy link to: ${m.caption}` : `Copy meme: ${m.caption}`}
-                >
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2" /><path d="M5 15V6a2 2 0 0 1 2-2h9" /></svg>
-                  <span class="badge" aria-live="polite"></span>
-                </button>
-                <a
-                  class="act download"
-                  href={`${base}${m.original}`}
-                  download={m.download}
-                  title="Download"
-                  aria-label={`Download original: ${m.caption}`}
-                >
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11" /><path d="m7 11 5 5 5-5" /><path d="M5 20h14" /></svg>
-                </a>
-                <button type="button" class="act info" title="Info" aria-label={`Info: ${m.caption}`} aria-haspopup="dialog">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 11v6" /><path d="M12 7.5v.01" /></svg>
-                </button>
+          <li class="card" data-slug={m.slug}>
+            <article class="card-focus" tabindex="-1" aria-labelledby={`cap-${m.slug}`}>
+              <button type="button" class="view" aria-label={`View larger: ${m.caption}`} aria-haspopup="dialog">
+                <img src={`${base}${m.thumb}`} alt={m.caption} width={m.thumbWidth} height={m.thumbHeight} loading="lazy" />
+              </button>
+              <div class="card-body">
+                <p class="caption" id={`cap-${m.slug}`}>{m.caption}</p>
+                {isKnownAuthor(m.author) && <p class="credit">by {m.author}</p>}
+                {m.animated && <p class="hint">Animated: copy gives the link</p>}
+                {m.tags.length > 0 && (
+                  <ul class="tags" aria-label="Tags">
+                    {m.tags.slice(0, CARD_TAGS).map((tag) => (
+                      <li><button type="button" class="tag" aria-pressed="false" data-tag={tag}>#{tag}</button></li>
+                    ))}
+                  </ul>
+                )}
+                <div class="actions">
+                  <button
+                    type="button"
+                    class="act copy"
+                    data-copy={`${base}${m.copy}`}
+                    data-animated={m.animated}
+                    title={m.animated ? 'Copy link' : 'Copy'}
+                    aria-label={m.animated ? `Copy link to: ${m.caption}` : `Copy meme: ${m.caption}`}
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2" /><path d="M5 15V6a2 2 0 0 1 2-2h9" /></svg>
+                    <span class="badge" aria-live="polite"></span>
+                  </button>
+                  <a
+                    class="act download"
+                    href={`${base}${m.original}`}
+                    download={m.download}
+                    title="Download"
+                    aria-label={`Download original: ${m.caption}`}
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11" /><path d="m7 11 5 5 5-5" /><path d="M5 20h14" /></svg>
+                  </a>
+                  <button type="button" class="act info" title="Info" aria-label={`Info: ${m.caption}`} aria-haspopup="dialog">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 11v6" /><path d="M12 7.5v.01" /></svg>
+                  </button>
+                </div>
               </div>
-            </div>
+            </article>
           </li>
         ))}
       </ul>

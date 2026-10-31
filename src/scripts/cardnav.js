@@ -1,23 +1,38 @@
 // Keyboard navigation across the masonry grid.
-// The cards form one tab stop (roving tabindex); arrow keys move between them by position,
-// Enter or Space opens the large view, and arrow up from the first row returns to the search box.
+//
+// Each card is an <article class="card-focus"> inside its <li class="card">. Only the current card
+// is a Tab stop, together with its own buttons and links (roving tabindex): Tab goes search, filters,
+// topics, the current card and its controls, then leaves the grid. Arrow keys, pressed on a card or
+// on any control inside it, move to the nearest card in that direction (Home and End jump to the
+// ends, arrow up from the first row returns to the search box). Enter or Space on a focused card
+// opens the large view. Focus changes glide instead of jumping (see motion.js).
+
+import { focusSmooth } from './motion.js';
 
 const grid = document.querySelector('.grid');
 const search = document.getElementById('q');
 
 const visibleCards = () => [...grid.children].filter((card) => !card.hidden);
+const focusTarget = (card) => card.querySelector(':scope > .card-focus');
 
-/** Exactly one visible card is reachable with Tab: the given one, else the current one, else the first. */
+let currentCard = null;
+
+/** Exactly one visible card (and its controls) is reachable with Tab: the given one, else the current one, else the first. */
 function syncRoving(preferred) {
   const visible = visibleCards();
-  const current = preferred && !preferred.hidden ? preferred : visible.find((c) => c.tabIndex === 0) ?? visible[0];
-  for (const card of grid.children) card.tabIndex = card === current ? 0 : -1;
+  currentCard =
+    preferred && !preferred.hidden ? preferred : currentCard && !currentCard.hidden ? currentCard : visible[0] ?? null;
+
+  for (const card of grid.children) {
+    const tabIndex = card === currentCard ? 0 : -1;
+    focusTarget(card).tabIndex = tabIndex;
+    for (const control of card.querySelectorAll('button, a[href]')) control.tabIndex = tabIndex;
+  }
 }
 
 /** Nearest card in the arrow's direction. Columns are different heights, so "next" is decided by geometry. */
 function neighbor(card, key) {
   const r = card.getBoundingClientRect();
-  const cx = (r.left + r.right) / 2;
   const cy = (r.top + r.bottom) / 2;
   let best = null;
   let bestScore = Infinity;
@@ -25,7 +40,6 @@ function neighbor(card, key) {
   for (const other of visibleCards()) {
     if (other === card) continue;
     const o = other.getBoundingClientRect();
-    const ox = (o.left + o.right) / 2;
     const oy = (o.top + o.bottom) / 2;
     const sameColumn = o.left < r.right - 1 && o.right > r.left + 1;
     let score = null;
@@ -43,9 +57,7 @@ function neighbor(card, key) {
   return best;
 }
 
-function focusCard(card) {
-  card.focus();
-}
+const focusCard = (card) => focusSmooth(focusTarget(card));
 
 grid.addEventListener('focusin', (event) => {
   const card = event.target.closest('.card');
@@ -67,7 +79,7 @@ document.addEventListener('keydown', (event) => {
 
   // From the search box, arrow down drops into the grid.
   if (target === search && event.key === 'ArrowDown') {
-    const first = visibleCards().find((c) => c.tabIndex === 0) ?? visibleCards()[0];
+    const first = currentCard && !currentCard.hidden ? currentCard : visibleCards()[0];
     if (first) {
       event.preventDefault();
       focusCard(first);
@@ -75,9 +87,9 @@ document.addEventListener('keydown', (event) => {
     return;
   }
 
-  // Only react on the card itself or its picture button, never inside the action buttons or dialogs.
-  const onCard = target.classList?.contains('card');
-  if (!onCard && !target.matches?.('button.view')) return;
+  // Only react when focus is already on a card or on a control inside one (never in dialogs or fields).
+  const onCard = target.classList?.contains('card-focus');
+  if (!onCard && !target.matches?.('button, a[href]')) return;
   const card = target.closest('.card');
   if (!card || !grid.contains(card)) return;
 
@@ -88,7 +100,7 @@ document.addEventListener('keydown', (event) => {
       focusCard(next);
     } else if (event.key === 'ArrowUp') {
       event.preventDefault();
-      search.focus();
+      focusSmooth(search);
     }
   } else if (event.key === 'Home' || event.key === 'End') {
     const cards = visibleCards();
