@@ -48,12 +48,13 @@ const OWNER = { name: 'Alvaro', url: 'https://www.linkedin.com/in/alcosta1/' };
 
     <main>
       <form class="controls" role="search" onsubmit="return false">
-        <label class="search">
-          <span class="sr-only">Search memes</span>
+        <div class="search">
+          <label class="sr-only" for="q">Search memes</label>
           <span class="prompt" aria-hidden="true">$</span>
           <input id="q" type="search" placeholder="search memes" autocomplete="off" spellcheck="false" aria-keyshortcuts="/" />
+          <button type="button" class="clear-chip" id="clear-search" aria-label="Clear search">CLEAR</button>
           <kbd class="shortcut" aria-hidden="true">/</kbd>
-        </label>
+        </div>
         {facets.map((f) => (
           <div class="chips" role="group" aria-label={f.label} data-facet={f.key}>
             <button type="button" aria-pressed="true" data-value="">All</button>
@@ -75,9 +76,10 @@ const OWNER = { name: 'Alvaro', url: 'https://www.linkedin.com/in/alcosta1/' };
         <p id="status" aria-live="polite"></p>
       </form>
 
-      <p id="none" hidden>
-        No meme matches. <button type="button" id="clear">Clear search and filters</button>
-      </p>
+      <div id="none" hidden>
+        <span>No meme matches.</span>
+        <button type="button" id="clear">Clear search and filters</button>
+      </div>
 
       <ul class="grid">
         {memes.map((m) => (

@@ -86,6 +86,19 @@ document.addEventListener('click', (event) => {
   }
 });
 
+// The CLEAR chip empties the search box only (filters and tags are cleared by the button in the empty state).
+document.getElementById('clear-search').addEventListener('click', () => {
+  state.q = '';
+  input.value = '';
+  apply();
+  input.focus();
+});
+
+// The whole bar is a click target for the field: the "$" prompt and the padding focus it too.
+document.querySelector('.search').addEventListener('click', (event) => {
+  if (!event.target.closest('button')) input.focus();
+});
+
 document.getElementById('clear').addEventListener('click', () => {
   Object.assign(state, { q: '', category: '', language: '', tag: '' });
   syncControls();
