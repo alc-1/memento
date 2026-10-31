@@ -1,0 +1,54 @@
+---
+import { readFileSync } from 'node:fs';
+import '../../styles/global.css';
+import { isKnownAuthor } from '../../scripts/author.js';
+
+export function getStaticPaths() {
+  const memes = JSON.parse(readFileSync('public/generated/index.json', 'utf8'));
+  return memes.map((meme) => ({ params: { slug: meme.slug }, props: { meme } }));
+}
+
+const { meme } = Astro.props;
+const base = import.meta.env.BASE_URL;
+// Link previews need absolute URLs.
+const absolute = (path) => new URL(path, Astro.site).href;
+const pageUrl = absolute(`${base}m/${meme.slug}/`);
+const description = meme.description || 'There is always a time for memes. One click copies a meme, ready to paste into any chat.';
+const credit = isKnownAuthor(meme.author) ? `by ${meme.author}` : '';
+const source = /^https?:\/\/\S+$/i.test(meme.source) ? meme.source : '';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{meme.caption} · Memento</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={pageUrl} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Memento" />
+    <meta property="og:title" content={meme.caption} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={pageUrl} />
+    <meta property="og:image" content={absolute(`${base}${meme.copy}`)} />
+    <meta name="twitter:card" content="summary_large_image" />
+  </head>
+  <body>
+    <header>
+      <div class="brand"><h1><a href={base}><strong>Meme</strong>nto</a></h1></div>
+    </header>
+    <main class="meme-page">
+      <img
+        src={`${base}${meme.animated ? meme.original : meme.full}`}
+        alt={meme.caption}
+        width={meme.thumbWidth}
+        height={meme.thumbHeight}
+      />
+      <h2>{meme.caption}</h2>
+      {credit && <p class="credit">{credit}</p>}
+      {source && <p class="credit"><a href={source} target="_blank" rel="noopener noreferrer">source</a></p>}
+      <p><a class="all" href={base}>Browse all memes</a></p>
+    </main>
+  </body>
+</html>

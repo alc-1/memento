@@ -364,3 +364,11 @@ dialog form { position: absolute; top: 0.4rem; right: 0.4rem; margin: 0; }
 /* Inverted colours on hover: the highest contrast the theme can give. */
 #clear:hover { background: var(--fg); border-color: var(--fg); color: var(--bg); }
 .card[hidden], [hidden] { display: none !important; }
+
+/* Single-meme page reached through a Share link. */
+h1 a { color: inherit; text-decoration: none; }
+.meme-page { display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+.meme-page img { display: block; max-width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--line); }
+.meme-page h2 { margin: 0.5rem 0 0; font-size: 1.25rem; }
+.meme-page .credit a, .meme-page .all { color: var(--accent-strong); }
+.meme-page .all { display: inline-block; margin-top: 0.5rem; }

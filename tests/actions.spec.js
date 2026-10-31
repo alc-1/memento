@@ -19,19 +19,20 @@ const card = (page, slug) => page.locator(`.card[data-slug="${slug}"]`);
 const isUnknown = (m) => m.author.trim().toLowerCase() === 'unknown';
 const sha256 = (buffer) => createHash('sha256').update(buffer).digest('hex');
 
-test('every card has copy, download and info buttons', async ({ page }) => {
+test('every card has copy, download, info and share buttons', async ({ page }) => {
   await expect(page.locator('.card')).toHaveCount(index.length);
   for (const m of index) {
     const c = card(page, m.slug);
     await expect(c.locator('button.copy')).toHaveCount(1);
     await expect(c.locator('a.download')).toHaveCount(1);
     await expect(c.locator('button.info')).toHaveCount(1);
+    await expect(c.locator('button.share')).toHaveCount(1);
   }
 });
 
 test('buttons are icon-only and named by their title', async ({ page }) => {
   const c = card(page, index.find((m) => !m.animated).slug);
-  for (const [selector, title] of [['.copy', 'Copy'], ['.download', 'Download'], ['.info', 'Info']]) {
+  for (const [selector, title] of [['.copy', 'Copy'], ['.download', 'Download'], ['.info', 'Info'], ['.share', 'Share']]) {
     const button = c.locator(`.act${selector}`);
     await expect(button).toHaveAttribute('title', title);
     await expect(button).toHaveText('');
@@ -152,7 +153,7 @@ test('clicking the image opens it large, and does not copy', async ({ page, isMo
   await expect(img).toHaveAttribute('src', new RegExp(`^/meme/${m.full}$`));
   await expect.poll(() => img.evaluate((el) => el.complete && el.naturalWidth > 0)).toBe(true);
   await expect(dialog).toContainText(m.caption);
-  await expect(card(page, m.slug).locator('.badge')).toBeEmpty();
+  await expect(card(page, m.slug).locator('.copy .badge')).toBeEmpty();
 
   await page.keyboard.press('Escape');
   await expect(dialog).toBeHidden();

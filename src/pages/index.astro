@@ -125,6 +125,16 @@ const OWNER = { name: 'Alvaro', url: 'https://www.linkedin.com/in/alcosta1/' };
                   <button type="button" class="act info" title="Info" aria-label={`Info: ${m.caption}`} aria-haspopup="dialog">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 11v6" /><path d="M12 7.5v.01" /></svg>
                   </button>
+                  <button
+                    type="button"
+                    class="act share"
+                    data-share={`${base}m/${m.slug}/`}
+                    title="Share"
+                    aria-label={`Share link to: ${m.caption}`}
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1" /><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1" /></svg>
+                    <span class="badge" aria-live="polite"></span>
+                  </button>
                 </div>
               </div>
             </article>
@@ -149,6 +159,7 @@ const OWNER = { name: 'Alvaro', url: 'https://www.linkedin.com/in/alcosta1/' };
 
     <script>
       import '../scripts/copy.js';
+      import '../scripts/share.js';
       import '../scripts/viewer.js';
       import '../scripts/cardnav.js';
       import '../scripts/filter.js';

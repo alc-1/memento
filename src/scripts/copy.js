@@ -1,4 +1,4 @@
-function flash(button, text, ok) {
+export function flash(button, text, ok) {
   const badge = button.querySelector('.badge');
   badge.textContent = text;
   badge.dataset.state = ok ? 'ok' : 'error';
