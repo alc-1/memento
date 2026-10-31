@@ -54,6 +54,39 @@ function neighbor(card, key) {
       bestScore = score;
     }
   }
+  return best ?? wrapLine(card, key);
+}
+
+/**
+ * Left/Right at the end of a line wrap like text does. Columns have different heights, so a "line" is
+ * a band of cards at about the same height:
+ *   Right on the last card of a line -> the first card of the next line (the leftmost-column card that
+ *     starts below the middle of the current one, nearest first);
+ *   Left on the first card of a line -> the last card of the previous line (the rightmost-column card
+ *     that ends above the middle of the current one, nearest first).
+ * On the last line, Right stays put; on the first line, Left stays put.
+ */
+function wrapLine(card, key) {
+  if (key !== 'ArrowRight' && key !== 'ArrowLeft') return null;
+  const cards = visibleCards();
+  const rects = new Map(cards.map((c) => [c, c.getBoundingClientRect()]));
+  const r = rects.get(card);
+  const cy = (r.top + r.bottom) / 2;
+  const lefts = cards.map((c) => rects.get(c).left);
+  const inColumn = (c, left) => Math.abs(rects.get(c).left - left) < 2;
+  let best = null;
+
+  if (key === 'ArrowRight') {
+    const first = Math.min(...lefts);
+    for (const c of cards) {
+      if (inColumn(c, first) && rects.get(c).top > cy && (!best || rects.get(c).top < rects.get(best).top)) best = c;
+    }
+  } else {
+    const last = Math.max(...lefts);
+    for (const c of cards) {
+      if (inColumn(c, last) && rects.get(c).bottom < cy && (!best || rects.get(c).bottom > rects.get(best).bottom)) best = c;
+    }
+  }
   return best;
 }
 

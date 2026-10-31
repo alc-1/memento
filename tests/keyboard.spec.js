@@ -333,3 +333,96 @@ test.describe('smooth, minimal motion', () => {
     expect(await name()).toBe('none');
   });
 });
+
+test.describe('Left and Right wrap between lines', () => {
+  test.skip(({ isMobile }) => isMobile, 'keyboard navigation is a desktop feature');
+
+  test.beforeEach(async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto('/meme/');
+    await ready(page);
+  });
+
+  // Every card's box in document coordinates, plus which column it is in.
+  const layout = async (page) => {
+    const cards = await page.locator('.card').evaluateAll((els) =>
+      els.map((el) => {
+        const r = el.getBoundingClientRect();
+        return { slug: el.dataset.slug, left: r.left, top: r.top + scrollY, bottom: r.bottom + scrollY };
+      }),
+    );
+    const lefts = cards.map((c) => c.left);
+    const first = Math.min(...lefts);
+    const last = Math.max(...lefts);
+    return { cards, first, last, leftCol: cards.filter((c) => Math.abs(c.left - first) < 2), rightCol: cards.filter((c) => Math.abs(c.left - last) < 2) };
+  };
+  const focusCardAt = (page, slug) => page.locator(`.card[data-slug="${slug}"] > .card-focus`).focus();
+
+  test('Right on the last card of a line goes to the first card of the next line', async ({ page }) => {
+    const { cards, leftCol, rightCol } = await layout(page);
+    expect(leftCol.length).toBeGreaterThan(1); // the test needs several lines to mean anything
+
+    for (const from of rightCol) {
+      const cy = (from.top + from.bottom) / 2;
+      const below = leftCol.filter((c) => c.top > cy).sort((a, b) => a.top - b.top);
+      if (!below.length) continue;
+      await focusCardAt(page, from.slug);
+      await page.keyboard.press('ArrowRight');
+      expect(await focusedSlug(page), `from ${from.slug}`).toBe(below[0].slug);
+    }
+    expect(cards.length).toBeGreaterThan(0);
+  });
+
+  test('Left on the first card of a line goes to the last card of the previous line', async ({ page }) => {
+    const { leftCol, rightCol } = await layout(page);
+    let checked = 0;
+    for (const from of leftCol) {
+      const cy = (from.top + from.bottom) / 2;
+      const above = rightCol.filter((c) => c.bottom < cy).sort((a, b) => b.bottom - a.bottom);
+      if (!above.length) continue;
+      await focusCardAt(page, from.slug);
+      await page.keyboard.press('ArrowLeft');
+      expect(await focusedSlug(page), `from ${from.slug}`).toBe(above[0].slug);
+      checked++;
+    }
+    expect(checked).toBeGreaterThan(0);
+  });
+
+  test('a wrap and its reverse bring you back, for the first line break at least', async ({ page }) => {
+    const { rightCol } = await layout(page);
+    const from = rightCol[0];
+    await focusCardAt(page, from.slug);
+    await page.keyboard.press('ArrowRight');
+    const next = await focusedSlug(page);
+    expect(next).not.toBe(from.slug);
+    await page.keyboard.press('ArrowLeft');
+    expect(await focusedSlug(page)).toBe(from.slug);
+  });
+
+  test('the very first card (Left) and the last line (Right) stay put', async ({ page }) => {
+    const { leftCol, rightCol, cards } = await layout(page);
+    const firstCard = [...leftCol].sort((a, b) => a.top - b.top)[0];
+    await focusCardAt(page, firstCard.slug);
+    await page.keyboard.press('ArrowLeft');
+    expect(await focusedSlug(page)).toBe(firstCard.slug);
+
+    // The last card of the last line: a rightmost-column card with no leftmost-column card starting below it.
+    const lastLine = rightCol.find((c) => !leftCol.some((l) => l.top > (c.top + c.bottom) / 2));
+    test.skip(!lastLine, 'every right-column card has a next line right now');
+    await focusCardAt(page, lastLine.slug);
+    await page.keyboard.press('ArrowRight');
+    expect(await focusedSlug(page)).toBe(lastLine.slug);
+    expect(cards.length).toBeGreaterThan(0);
+  });
+
+  test('it also works from a button inside the card', async ({ page }) => {
+    const { leftCol, rightCol } = await layout(page);
+    const from = rightCol[0];
+    const cy = (from.top + from.bottom) / 2;
+    const expected = leftCol.filter((c) => c.top > cy).sort((a, b) => a.top - b.top)[0];
+    await focusCardAt(page, from.slug);
+    await page.keyboard.press('Tab'); // the picture button
+    await page.keyboard.press('ArrowRight');
+    expect(await focusedSlug(page)).toBe(expected.slug);
+  });
+});
