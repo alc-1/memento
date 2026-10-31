@@ -27,7 +27,7 @@ export async function generateImages(srcPath, outDir) {
   if (!animated) {
     await still()
       .resize({ width: FULL_WIDTH, withoutEnlargement: true })
-      .png()
+      .png({ compressionLevel: 9, palette: true, quality: 80, effort: 10 })
       .toFile(`${outDir}/copy.png`);
   }
 

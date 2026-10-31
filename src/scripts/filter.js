@@ -120,15 +120,14 @@ document.addEventListener('keydown', (event) => {
   }
 });
 
-// The index is the same file the build already publishes. Cards stay visible and copyable until it loads.
-const base = import.meta.env.BASE_URL;
+// The index is already inlined in the page (#memes-data), so search needs no extra request.
 readUrl();
 syncControls();
 // On a computer the search box is where everything starts, so it has focus from the first moment.
 // Not on touch devices: it would open the on-screen keyboard over the album.
 if (hasFinePointer()) input.focus({ preventScroll: true });
 try {
-  memes = await (await fetch(`${base}generated/index.json`)).json();
+  memes = JSON.parse(document.getElementById('memes-data').textContent);
   fuse = new Fuse(memes, {
     keys: [
       { name: 'caption', weight: 3 },

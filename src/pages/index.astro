@@ -82,11 +82,11 @@ const OWNER = { name: 'Alvaro', url: 'https://www.linkedin.com/in/alcosta1/' };
       </div>
 
       <ul class="grid">
-        {memes.map((m) => (
+        {memes.map((m, i) => (
           <li class="card" data-slug={m.slug}>
             <article class="card-focus" tabindex="-1" aria-labelledby={`cap-${m.slug}`}>
               <button type="button" class="view" aria-label={`View larger: ${m.caption}`} aria-haspopup="dialog">
-                <img src={`${base}${m.thumb}`} alt={m.caption} width={m.thumbWidth} height={m.thumbHeight} loading="lazy" />
+                <img src={`${base}${m.thumb}`} alt={m.caption} width={m.thumbWidth} height={m.thumbHeight} decoding="async" loading={i < 6 ? 'eager' : 'lazy'} fetchpriority={i < 6 ? 'high' : undefined} />
               </button>
               <div class="card-body">
                 <p class="caption" id={`cap-${m.slug}`}>{m.caption}</p>
