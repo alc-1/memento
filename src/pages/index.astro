@@ -48,6 +48,7 @@ const OWNER = { name: 'Alvaro', url: 'https://www.linkedin.com/in/alcosta1/' };
 
     <main>
       <form class="controls" role="search" onsubmit="return false">
+        <div class="controls-main">
         <div class="search">
           <label class="sr-only" for="q">Search memes</label>
           <span class="prompt" aria-hidden="true">$</span>
@@ -63,6 +64,8 @@ const OWNER = { name: 'Alvaro', url: 'https://www.linkedin.com/in/alcosta1/' };
             ))}
           </div>
         ))}
+        <p id="status" aria-live="polite"></p>
+        </div>
         {topics.length > 0 && (
           <div class="topics" role="group" aria-label="Topics">
             <span class="topics-label">Topics</span>
@@ -73,7 +76,6 @@ const OWNER = { name: 'Alvaro', url: 'https://www.linkedin.com/in/alcosta1/' };
             ))}
           </div>
         )}
-        <p id="status" aria-live="polite"></p>
       </form>
 
       <div id="none" hidden>
