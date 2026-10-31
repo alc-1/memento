@@ -65,7 +65,8 @@ test('the buttons sit below the text, aligned on the right', async ({ page }) =>
   }
 });
 
-test('an Unknown author is hidden on the card, in the large view and in info', async ({ page }) => {
+test('an Unknown author is hidden on the card, in the large view and in info', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'on small screens the picture copies instead of zooming');
   const m = index.find(isUnknown);
   test.skip(!m, 'no meme with an Unknown author in memes/ right now');
   const c = card(page, m.slug);
@@ -140,7 +141,8 @@ test('info links http sources safely and never links other schemes', async ({ pa
   await expect(page.locator('#info-dialog a')).toHaveCount(0);
 });
 
-test('clicking the image opens it large, and does not copy', async ({ page }) => {
+test('clicking the image opens it large, and does not copy', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'on small screens the picture copies instead of zooming');
   const m = index[0];
   await card(page, m.slug).locator('button.view').click();
 
@@ -156,7 +158,8 @@ test('clicking the image opens it large, and does not copy', async ({ page }) =>
   await expect(dialog).toBeHidden();
 });
 
-test('the large view also closes with its button and on backdrop click', async ({ page }) => {
+test('the large view also closes with its button and on backdrop click', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'on small screens the picture copies instead of zooming');
   const m = index[0];
   const dialog = page.locator('#viewer');
 
@@ -174,4 +177,76 @@ test('copy button shows its feedback and the image button does not trigger it', 
   const c = card(page, m.slug);
   await c.locator('button.copy').click();
   await expect(c.locator('button.copy .badge')).toHaveText('Copied!');
+});
+
+test.describe('the picture on small screens', () => {
+  const SMALL = { width: 600, height: 900 };
+  const BIG = { width: 1280, height: 900 };
+
+  const stillMeme = () => index.find((m) => !m.animated);
+
+  test('tapping the picture copies the meme, and does not open the large view', async ({ page }) => {
+    await page.setViewportSize(SMALL);
+    const m = stillMeme();
+    const c = card(page, m.slug);
+
+    let copyFetches = 0;
+    page.on('request', (r) => { if (r.url().endsWith(`${m.slug}/copy.png`)) copyFetches++; });
+    await c.locator('button.view').click();
+
+    await expect(c.locator('button.copy .badge')).toHaveText('Copied!');
+    await expect(page.locator('#viewer')).toBeHidden();
+    expect(copyFetches, 'one tap copies once, not twice').toBe(1);
+
+    const clip = await page.evaluate(async () => {
+      const [item] = await navigator.clipboard.read();
+      return { types: item.types, size: (await item.getType('image/png')).size };
+    });
+    expect(clip.types).toContain('image/png');
+    expect(clip.size).toBeGreaterThan(0);
+  });
+
+  test('the picture is announced as a copy button on small screens, and as a viewer on big ones', async ({ page }) => {
+    const m = stillMeme();
+    const picture = card(page, m.slug).locator('button.view');
+
+    await page.setViewportSize(SMALL);
+    await expect(picture).toHaveAttribute('aria-label', `Copy meme: ${m.caption}`);
+    await expect(picture).not.toHaveAttribute('aria-haspopup', /.*/);
+
+    // The label follows the screen when it is resized, with no reload.
+    await page.setViewportSize(BIG);
+    await expect(picture).toHaveAttribute('aria-label', `View larger: ${m.caption}`);
+    await expect(picture).toHaveAttribute('aria-haspopup', 'dialog');
+  });
+
+  test('an animated GIF copies its link when its picture is tapped', async ({ page }) => {
+    const gif = index.find((m) => m.animated);
+    test.skip(!gif, 'no animated GIF in memes/ right now');
+    await page.setViewportSize(SMALL);
+    await card(page, gif.slug).locator('button.view').click();
+    await expect(card(page, gif.slug).locator('button.copy .badge')).toHaveText('Link copied');
+    await expect(page.locator('#viewer')).toBeHidden();
+  });
+
+  test('on big screens the picture still opens the large view', async ({ page }) => {
+    await page.setViewportSize(BIG);
+    await card(page, stillMeme().slug).locator('button.view').click();
+    await expect(page.locator('#viewer')).toBeVisible();
+  });
+
+  test('the boundary is 640px', async ({ page }) => {
+    const m = stillMeme();
+    const picture = card(page, m.slug).locator('button.view');
+    await page.setViewportSize({ width: 640, height: 900 });
+    await expect(picture).toHaveAttribute('aria-label', /^Copy meme/);
+    await page.setViewportSize({ width: 641, height: 900 });
+    await expect(picture).toHaveAttribute('aria-label', /^View larger/);
+  });
+
+  test('Info is still available on small screens', async ({ page }) => {
+    await page.setViewportSize(SMALL);
+    await card(page, stillMeme().slug).locator('button.info').click();
+    await expect(page.locator('#info-dialog')).toBeVisible();
+  });
 });

@@ -1,4 +1,6 @@
 import { isKnownAuthor } from './author.js';
+import { copyFromButton } from './copy.js';
+import { isSmallScreen, onScreenSizeChange } from './screen.js';
 
 const memes = new Map(JSON.parse(document.getElementById('memes-data').textContent).map((m) => [m.slug, m]));
 const base = import.meta.env.BASE_URL;
@@ -54,12 +56,35 @@ function openInfo(meme) {
   infoDialog.showModal();
 }
 
+/**
+ * On a small screen a zoomed frame adds nothing, so tapping the picture copies it, like the Copy
+ * button. The label tells assistive technology which of the two the picture does right now.
+ */
+function syncPictureAction() {
+  const copies = isSmallScreen();
+  for (const button of document.querySelectorAll('button.view')) {
+    const card = button.closest('.card');
+    const meme = memes.get(card.dataset.slug);
+    if (copies) {
+      button.setAttribute('aria-label', `${meme.animated ? 'Copy link to' : 'Copy meme'}: ${meme.caption}`);
+      button.removeAttribute('aria-haspopup');
+    } else {
+      button.setAttribute('aria-label', `View larger: ${meme.caption}`);
+      button.setAttribute('aria-haspopup', 'dialog');
+    }
+  }
+}
+syncPictureAction();
+onScreenSizeChange(syncPictureAction);
+
 document.addEventListener('click', (event) => {
   const card = event.target.closest('.card');
   if (!card) return;
   const meme = memes.get(card.dataset.slug);
-  if (event.target.closest('button.view')) openViewer(meme);
-  else if (event.target.closest('button.info')) openInfo(meme);
+  if (event.target.closest('button.view')) {
+    if (isSmallScreen()) copyFromButton(card.querySelector('button.copy'));
+    else openViewer(meme);
+  } else if (event.target.closest('button.info')) openInfo(meme);
 });
 
 // Clicking the backdrop (the dialog element itself, outside its content) closes it.

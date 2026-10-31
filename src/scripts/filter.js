@@ -1,5 +1,6 @@
 import Fuse from 'fuse.js';
 import { focusSmooth, scrollToSmooth } from './motion.js';
+import { hasFinePointer } from './screen.js';
 
 const grid = document.querySelector('.grid');
 const cards = new Map([...grid.children].map((li) => [li.dataset.slug, li]));
@@ -110,6 +111,9 @@ document.addEventListener('keydown', (event) => {
 const base = import.meta.env.BASE_URL;
 readUrl();
 syncControls();
+// On a computer the search box is where everything starts, so it has focus from the first moment.
+// Not on touch devices: it would open the on-screen keyboard over the album.
+if (hasFinePointer()) input.focus({ preventScroll: true });
 try {
   memes = await (await fetch(`${base}generated/index.json`)).json();
   fuse = new Fuse(memes, {

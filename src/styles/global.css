@@ -94,6 +94,7 @@ header p { margin: 0; color: var(--muted); }
   background: none;
   cursor: zoom-in;
 }
+@media (max-width: 640px) { .view { cursor: pointer; } }
 .view:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
 /* width/height attributes reserve the ratio; auto height keeps the whole image visible. */
 .view img { display: block; width: 100%; height: auto; object-fit: contain; }

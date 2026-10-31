@@ -31,7 +31,7 @@ test.describe('arrow-key navigation', () => {
   });
 
   test('arrow down from the search box focuses a card, with a sharp 2px ring', async ({ page }) => {
-    await page.keyboard.press('/');
+    await expect(page.locator('#q')).toBeFocused(); // autofocused on desktop
     await page.keyboard.press('ArrowDown');
     const slug = await focusedSlug(page);
     expect(slug).not.toBeNull();
@@ -45,7 +45,7 @@ test.describe('arrow-key navigation', () => {
   });
 
   test('arrows move across and down the columns, and only one card has the ring', async ({ page }) => {
-    await page.keyboard.press('/');
+    await expect(page.locator('#q')).toBeFocused(); // autofocused on desktop
     await page.keyboard.press('ArrowDown');
     const start = await focusedSlug(page);
     const a = await rectOf(page, start);
@@ -74,7 +74,7 @@ test.describe('arrow-key navigation', () => {
   });
 
   test('arrow up from the first row returns to the search box; Home and End jump to the ends', async ({ page }) => {
-    await page.keyboard.press('/');
+    await expect(page.locator('#q')).toBeFocused(); // autofocused on desktop
     await page.keyboard.press('ArrowDown');
     await page.keyboard.press('ArrowUp');
     await expect(page.locator('#q')).toBeFocused();
@@ -87,7 +87,7 @@ test.describe('arrow-key navigation', () => {
   });
 
   test('Enter opens the large view of the focused card, Escape gives focus back', async ({ page }) => {
-    await page.keyboard.press('/');
+    await expect(page.locator('#q')).toBeFocused(); // autofocused on desktop
     await page.keyboard.press('ArrowDown');
     const slug = await focusedSlug(page);
     const meme = index.find((m) => m.slug === slug);
@@ -100,7 +100,7 @@ test.describe('arrow-key navigation', () => {
   });
 
   test('arrows pressed on a control inside a card move like they do from the card', async ({ page }) => {
-    await page.keyboard.press('/');
+    await expect(page.locator('#q')).toBeFocused(); // autofocused on desktop
     await page.keyboard.press('ArrowDown');
     const start = await focusedSlug(page);
 
@@ -205,7 +205,7 @@ test.describe('tab stops and card semantics', () => {
     expect(tabbableInside).toBe(controls);
 
     // The roving stop follows focus.
-    await page.keyboard.press('/');
+    await expect(page.locator('#q')).toBeFocused(); // autofocused on desktop
     await page.keyboard.press('ArrowDown');
     await page.keyboard.press('ArrowRight');
     const moved = await focusedSlug(page);
@@ -213,7 +213,7 @@ test.describe('tab stops and card semantics', () => {
   });
 
   test('Tab walks through the current card, then leaves the grid', async ({ page }) => {
-    await page.keyboard.press('/');
+    await expect(page.locator('#q')).toBeFocused(); // autofocused on desktop
     await page.keyboard.press('ArrowDown');
     const slug = await focusedSlug(page);
     const controls = await page.locator(`.card[data-slug="${slug}"] :is(button, a[href])`).count();
@@ -279,7 +279,7 @@ test.describe('smooth, minimal motion', () => {
     await page.setViewportSize({ width: 1280, height: 600 });
     await page.goto('/meme/');
     await ready(page);
-    await page.keyboard.press('/');
+    await expect(page.locator('#q')).toBeFocused(); // autofocused on desktop
     await page.keyboard.press('ArrowDown');
   });
 
@@ -310,7 +310,7 @@ test.describe('smooth, minimal motion', () => {
     await page.setViewportSize({ width: 1280, height: 1400 }); // tall enough for the first row
     await page.goto('/meme/');
     await ready(page);
-    await page.keyboard.press('/');
+    await expect(page.locator('#q')).toBeFocused(); // autofocused on desktop
     await page.keyboard.press('ArrowDown');
     await expect.poll(() => sampleScroll(page, 200).then((seen) => seen.length)).toBe(1); // settled
     const before = await page.evaluate(() => scrollY);

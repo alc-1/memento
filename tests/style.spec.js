@@ -140,6 +140,11 @@ test.describe('terminal-style search', () => {
   test('the shortcut hint fades while typing, and the box shows a focus ring', async ({ page, isMobile }) => {
     test.skip(isMobile, 'no shortcut hint on touch devices');
     const hint = page.locator('.shortcut');
+    await expect(page.locator('#q')).toBeFocused(); // autofocused on desktop, so the hint starts hidden
+    await expect(hint).toHaveCSS('opacity', '0');
+
+    await page.locator('h1').click(); // click away: the keycap shows again
+    await expect(page.locator('#q')).not.toBeFocused();
     await expect(hint).toHaveCSS('opacity', '1');
 
     await page.keyboard.press('/');

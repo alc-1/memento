@@ -23,9 +23,8 @@ async function copyLink(url) {
   await navigator.clipboard.writeText(new URL(url, location.href).href);
 }
 
-document.addEventListener('click', async (event) => {
-  const button = event.target.closest('button.copy');
-  if (!button) return;
+/** Copies what the card's Copy button points at (the PNG, or the link for animated GIFs) and shows the badge. */
+export async function copyFromButton(button) {
   const url = button.dataset.copy;
   const animated = button.dataset.animated === 'true';
   try {
@@ -40,4 +39,9 @@ document.addEventListener('click', async (event) => {
     console.error('Copy failed', err);
     flash(button, 'Copy failed', false);
   }
+}
+
+document.addEventListener('click', (event) => {
+  const button = event.target.closest('button.copy');
+  if (button) copyFromButton(button);
 });

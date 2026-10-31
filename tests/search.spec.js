@@ -97,6 +97,8 @@ test('state lives in the URL and is restored on load', async ({ page }) => {
 });
 
 test('slash focuses the search box, escape clears it', async ({ page }) => {
+  await page.locator('h1').click(); // the box is autofocused on desktop; leave it first
+  await expect(page.locator('#q')).not.toBeFocused();
   await page.keyboard.press('/');
   await expect(page.locator('#q')).toBeFocused();
   await page.keyboard.type('zzzz');
