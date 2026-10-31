@@ -247,6 +247,8 @@ test.describe('empty state', () => {
   };
 
   test('the message and the button share one row, vertically centred on each other', async ({ page }) => {
+    // Wide enough for one row whatever the system font is (Linux CI falls back to wider fonts than Windows/macOS).
+    await page.setViewportSize({ width: 640, height: 800 });
     await empty(page);
     const g = await page.evaluate(() => {
       const mid = (sel) => {

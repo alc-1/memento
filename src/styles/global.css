@@ -255,6 +255,8 @@ dialog form { position: absolute; top: 0.4rem; right: 0.4rem; margin: 0; }
 .search {
   display: flex;
   flex: 1 1 16rem;
+  /* Lets the box shrink below the input's default width; with a wide monospace fallback it pushed the page sideways on 320px phones. */
+  min-width: 0;
   align-items: center;
   gap: 0.4rem;
   padding: 0 0.6rem 0 0.85rem;
