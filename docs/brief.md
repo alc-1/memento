@@ -14,7 +14,7 @@ When a meme would fit, the friction of searching, saving and re-uploading kills 
 
 Bring quality memes closer, so lighter exchanges happen at work and outside it.
 
-**Memento** is a personal, curated portfolio of memes and illustrations, shown as an album at meme.alcosta.ch. One click copies a meme, ready to paste into any chat.
+**Memento** is a personal, curated portfolio of memes and illustrations, shown as an album at meme.alvarocosta.ch. One click copies a meme, ready to paste into any chat.
 
 The value is in two things: the quality of the content, and how little effort it takes to use.
 
@@ -96,4 +96,4 @@ Adding a meme must take 30 seconds, otherwise the site never gets fed. A local a
 
 - Final name: Memento. Alternatives considered: Mememe, Me's memes, Mes memes, Same Same, Meme Machine.
 - Repo: private at first, given the uncertain rights on found memes.
-- URL: meme.alcosta.ch (GitHub Pages custom domain on this repo, built with `BASE_PATH=/`). Changed from alcosta.ch/meme so the URL is not coupled to the repo name.
+- URL: meme.alvarocosta.ch (GitHub Pages custom domain on this repo, built with `BASE_PATH=/`). Changed from alvarocosta.ch/meme so the URL is not coupled to the repo name.

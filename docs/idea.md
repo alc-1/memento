@@ -23,7 +23,10 @@ Current content, for scale: 50 memes, categories `work` (38), `gaming` (7), `mis
 
 ## Content and discovery
 
-- **Popular sort.** Count every click-to-copy (small Cloudflare Worker with KV or D1 keyed by slug); counts never go into git. Already on the roadmap as step 5.
+- **Date added.** Record when each meme joined the site, as an `added` field in `meta.json` (ISO date) set by the admin on save, with a one-off backfill for the existing memes from git history. Never edited afterwards, so a caption fix does not make an old meme look new.
+- **Newest first by default.** Order the album by `added`, most recent first, so a returning visitor sees fresh content at the top. Optionally flag memes added since the visitor's last visit (a small "new" mark, last-visit date kept in `localStorage`).
+- **Sort options.** A sort control next to the filters: Recent (default), Popular, Random, and later A-Z by caption or category. Kept in the URL like `?tag=` (e.g. `?sort=popular`). Random reshuffles on each load, and the choice must not fight the roving-tabindex keyboard navigation.
+- **Popular sort.** Count every click-to-copy (small Cloudflare Worker with KV or D1 keyed by slug); counts never go into git. Already on the roadmap as step 5. Needed before the Popular option above can ship.
 - **Random meme.** A "surprise me" button or `/meme/random`.
 - **Related memes.** On the meme page, a few others sharing tags or category.
 - **Tag hygiene in the admin.** Suggest merging near-duplicate tags (`dev`/`devs`/`developer`), show tag counts while typing, and warn about tags used once.

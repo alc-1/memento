@@ -62,12 +62,12 @@ jobs:
 
       - run: npm ci
 
-      # Served from the root of the custom domain meme.alcosta.ch (Pages custom domain set on this repo).
+      # Served from the root of the custom domain meme.alvarocosta.ch (Pages custom domain set on this repo).
       - name: Build
         run: npm run build
         env:
           BASE_PATH: /
-          SITE: https://meme.alcosta.ch
+          SITE: https://meme.alvarocosta.ch
 
       - uses: actions/upload-pages-artifact@v5
         with:
